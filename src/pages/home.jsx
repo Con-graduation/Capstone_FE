@@ -6,11 +6,12 @@ import playIcon from '../assets/playIcon.svg';
 import RoutineBox from '../components/routineBox';
 import rightArrow from '../assets/rightArrow.svg';
 import BarChart from '../components/BarChart';
+import googleLogo from '../assets/googleLogo.png';
 
 export default function Home() {
   return (
     <ResponsiveWrapper desktopTitle="홈페이지 - 모바일 전용">
-      <div className="min-h-screen w-full bg-[#EEF5FF]">
+      <div className="min-h-screen w-full bg-[#EEF5FF] pb-36">
         <Header />
         <div className="px-6 pt-8 flex flex-col gap-8">
           <div className="flex flex-col gap-2">
@@ -51,6 +52,15 @@ export default function Home() {
           />
           </div>
           
+          <div>
+            <p className="text-2xl font-bold mb-2">구글 캘린더에 알림 일정을 추가하세요!</p>
+            <p className="text-md text-gray-600 font-light">구글 캘린더와 알림 일정을 추가하려면<br/>
+            구글 계정으로 연동하세요 </p>
+            <button className="flex items-center gap-2 bg-white text-black px-16 py-2 rounded-md border border-gray-300 mx-auto mt-4 shadow-md">
+              <img src={googleLogo} alt="googleLogo" className="w-6 h-6" />
+              구글 계정으로 연동
+            </button>
+          </div>
         </div>
       </div>
     </ResponsiveWrapper>
