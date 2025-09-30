@@ -1,8 +1,15 @@
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import profile from '../assets/profile.svg';
+import homeIcon from '../assets/homeIcon.svg';
 
 export default function Header() {
+  const navigate = useNavigate();
   return (
     <div className="sticky top-0 z-50 backdrop-blur-md bg-blue-400/80 w-screen h-16 flex items-center justify-between px-4 shadow-md">
+      <img src={homeIcon} alt="homeIcon" className="w-8 h-8 cursor-pointer" 
+      onClick={() => navigate('/')}
+      />
         <div></div>
         <img src={profile} alt="profile" className="w-8 h-8" />
     </div>
