@@ -11,13 +11,13 @@ export default function MusicRecommend() {
     useEffect(() => {
         setTimeout(() => {
             setLoading(false);
-        }, 3000);
+        }, 5000);
     }, []);
 
   return (
     <>
     {loading && (
-    <div className="min-h-screen w-full bg-[#EEF5FF] max-w-96 flex flex-col items-center justify-center">
+    <div className="h-[calc(100vh-8rem)] w-full bg-[#EEF5FF] max-w-96 flex flex-col items-center justify-center">
       <h1 className="text-3xl font-bold text-center">맞춤 곡 추천</h1>
       <img src={loadingGif} alt="loading" className="w-48 h-48" />
       <p className="text-xl font-semibold ">연습 기록을 기반으로</p>
@@ -36,7 +36,10 @@ export default function MusicRecommend() {
                 <p className="text-[10px] font-light">수동 설정을 통한 곡 추천 받기도 가능합니다.</p>
             </div>
             <button className="w-80 py-2 bg-blue-500 text-white rounded-md font-bold mt-10"
-            onClick={() => navigate('/recommend/result')}
+            onClick={() => {
+                navigate('/recommend/result');
+                window.scrollTo(0, 0);
+            }}
             >곡 추천 받기</button>
            
         </div>
