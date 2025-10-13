@@ -5,9 +5,10 @@ import MusicRecommend from "../pages/recommend/musicRecommend";
 import RecommendResult from "../pages/recommend/recommendResult";
 import Join from "../pages/join"
 import MyPage from "../pages/mypage"
-import Metronome from "../pages/settings/metronome"
-import Tuner from "../pages/settings/tuner"
-import Audio from "../pages/settings/audio"
+import Metronome from "../pages/soundSettings/metronome"
+import Tuner from "../pages/soundSettings/tuner"
+import Audio from "../pages/soundSettings/audio"
+import Setting from "../pages/setting"
 
 export default function Router() {
   return (
@@ -21,6 +22,7 @@ export default function Router() {
       <Route path="/settings/metronome" element={<Metronome />} />
       <Route path="/settings/tuner" element={<Tuner />} />
       <Route path="/settings/audio" element={<Audio />} />
+      <Route path="/setting" element={<Setting />} />
     </Routes>
   );
 }
