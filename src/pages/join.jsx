@@ -4,10 +4,13 @@ import Input from '../components/Input';
 import guitarImg from '../assets/guitarImg.png';
 import Modal from '../components/modal';
 import ResponsiveWrapper from '../components/ResponsiveWrapper';
+import { postUsernameCheck, postEmailCheck, postRegister } from '../api/auth';
 
 export default function Join() {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState('');
+    const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+    const [isRequestingEmail, setIsRequestingEmail] = useState(false);
     const navigate = useNavigate();
     const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
@@ -35,26 +38,64 @@ export default function Join() {
         }
       };
 
-      const handleDuplicateCheck = () => {
+      const handleDuplicateCheck = async () => {
+
         if (!formData.username.trim()) {
           setModalContent('아이디를 입력해주세요.');
           setModalOpen(true);
           return;
         }
 
-        setModalContent(`'${formData.username}'는 사용 가능한 아이디입니다.`);
-        setModalOpen(true);
+        setIsCheckingUsername(true);
+        console.log('✅ 아이디 입력 확인, API 호출 시작');
+        
+        try {
+          const response = await postUsernameCheck(formData.username);
+          console.log('📡 API 응답:', response);
+          
+          if (response.data === true) {
+          
+            setModalContent(`'${formData.username}'는 사용 가능한 아이디입니다.`);
+          } else {
+          
+            setModalContent(`'${formData.username}'는 이미 사용 중인 아이디입니다.`);
+          }
+          setModalOpen(true);
+        } catch (error) {
+          console.error('아이디 중복 확인 에러:', error);
+          setModalContent('아이디 중복 확인 중 오류가 발생했습니다.');
+          setModalOpen(true);
+        } finally {
+          setIsCheckingUsername(false);
+        }
       };
 
-      const handleEmailRequest = () => {
+      const handleEmailRequest = async () => {
         if (!formData.email.trim()) {
           setModalContent('이메일을 입력해주세요.');
           setModalOpen(true);
           return;
         }
-        setModalContent(`인증번호가 메일로 전송되었습니다.<br/>
-            메일함을 확인해주세요.`);
-        setModalOpen(true);
+
+        setIsRequestingEmail(true);
+        
+        try {
+          const response = await postEmailCheck(formData.email);
+          
+          if (response.data === true) {
+            setModalContent(`인증번호가 메일로 전송되었습니다.<br/>
+                메일함을 확인해주세요.`);
+          } else {
+            setModalContent('이메일 전송 중 오류가 발생했습니다.');
+          }
+          setModalOpen(true);
+        } catch (error) {
+          console.error('이메일 인증 요청 에러:', error);
+          setModalContent('이메일 인증 요청 중 오류가 발생했습니다.');
+          setModalOpen(true);
+        } finally {
+          setIsRequestingEmail(false);
+        }
       };
       const validateForm = () => {
         const newErrors = {};
@@ -156,11 +197,12 @@ export default function Join() {
                 placeholder="아이디를 입력하세요"
                 essential={true}
                 button={true}
-                buttonText="중복확인"
+                buttonText={isCheckingUsername ? "확인중..." : "중복확인"}
                 onClick={handleDuplicateCheck}
                 value={formData.username}
                 onChange={handleChange}
                 error={errors.username}
+                buttonDisabled={isCheckingUsername}
               />
               
               <Input
@@ -190,11 +232,12 @@ export default function Join() {
                 placeholder="이메일을 입력하세요"
                 essential={true}
                 button={true}
-                buttonText="인증요청"
+                buttonText={isRequestingEmail ? "요청중..." : "인증요청"}
                 onClick={handleEmailRequest}
                 value={formData.email}
                 onChange={handleChange}
                 error={errors.email}
+                buttonDisabled={isRequestingEmail}
               />
               <Input
                 type="text"
