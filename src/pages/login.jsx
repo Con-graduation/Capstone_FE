@@ -44,8 +44,7 @@ const Login = () => {
       setErrors(newErrors);
       return;
     }
-    
-    // 로그인 성공 시 홈페이지로 이동
+
     console.log('로그인 성공:', formData);
     navigate('/');
   };
@@ -64,8 +63,9 @@ const Login = () => {
             
           </div>
           
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="bg-white/50 border-2 border-white/50 p-6 rounded-lg shadow-xl">
+          <form className="" onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-6 bg-white/50 border-2 border-white/50 p-6 rounded-lg shadow-xl">
+             
               <Input
                 type="text"
                 name="username"
@@ -88,18 +88,18 @@ const Login = () => {
               
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200"
+                className="w-full mt-4 flex justify-center py-3 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200"
               >
                 로그인
               </button>
               
               <div className='flex justify-between'>
-              <div className="mt-4 text-center underline">
-                <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">
+              <div className="text-center underline">
+                <a href="/join" className="text-sm text-indigo-600 hover:text-indigo-500">
                   회원가입
                 </a>
               </div>
-              <div className="mt-4 text-center underline">
+              <div className="text-center underline">
                 <a href="#" className="text-sm text-indigo-600 hover:text-indigo-500">
                   비밀번호 재설정
                 </a>

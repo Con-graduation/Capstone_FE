@@ -11,7 +11,7 @@ import googleLogo from '../assets/googleLogo.png';
 export default function Home() {
   return (
    
-      <div className="min-h-screen w-full bg-[#EEF5FF] pb-24 max-w-96">
+      <div className="min-h-screen w-screen bg-[#EEF5FF] pb-24">
         <div className="px-6 pt-8 flex flex-col gap-8">
           <div className="flex flex-col gap-2">
             <div className="text-2xl font-bold">김시은님</div>

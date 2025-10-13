@@ -11,12 +11,13 @@ import MenuBar from './components/menuBar';
 function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/login';
+  const isJoinPage = location.pathname === '/join';
 
   return (
     <ResponsiveWrapper desktopTitle="홈페이지 - 모바일 전용">
-      {!isLoginPage && <Header />}
+      {!isLoginPage && !isJoinPage && <Header />}
       <Router />
-      {!isLoginPage && <MenuBar />}
+      {!isLoginPage && !isJoinPage && <MenuBar />}
     </ResponsiveWrapper>
   );
 }
