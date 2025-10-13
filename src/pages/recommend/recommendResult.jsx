@@ -95,7 +95,7 @@ export default function RecommendResult() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-[#EEF5FF] max-w-96 flex flex-col items-center gap-4 py-8">
+        <div className="min-h-screen w-screen bg-[#EEF5FF] max-w-96 flex flex-col items-center gap-4 py-8">
             <h1 className="text-2xl font-bold">맞춤 곡 추천</h1>
             {randomAlbums.map((album) => (
                 <AlbumBox 
