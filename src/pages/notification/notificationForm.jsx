@@ -1,8 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import Accordian from '../../components/accordian';
 
 export default function NotificationForm() {
+    const navigate = useNavigate();
     return (
-        <div className="min-h-screen w-screen bg-[#EEF5FF] flex flex-col px-6 pb-24">
+        <div className="min-h-[90vh] w-screen bg-[#EEF5FF] flex flex-col px-6 pb-24">
            
         <h1 className="relative text-2xl font-bold text-center mt-10">알림 설정</h1>
             <button 
@@ -19,7 +21,7 @@ export default function NotificationForm() {
             <Accordian title="종료 날짜" type="date" value="없음" />
             <Accordian title="반복" type="repeat" value="없음" />
             <Accordian title="시간" type="time" value="없음" />
-            <button className="w-full p-2 bg-blue-500 text-white rounded-md">알림 설정</button>
+            <button className="w-full p-2 bg-blue-500 text-white rounded-md mt-12 shadow-md">알림 추가하기</button>
            
             </div>
         </div>
