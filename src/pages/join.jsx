@@ -4,13 +4,14 @@ import Input from '../components/Input';
 import guitarImg from '../assets/guitarImg.png';
 import Modal from '../components/modal';
 import ResponsiveWrapper from '../components/ResponsiveWrapper';
-import { postUsernameCheck, postEmailCheck, postRegister } from '../api/auth';
+import { getUsernameCheck, postRequestEmail, postVerifyEmail, postRegister } from '../api/auth';
 
 export default function Join() {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState('');
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
     const [isRequestingEmail, setIsRequestingEmail] = useState(false);
+    const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
     const navigate = useNavigate();
     const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
@@ -47,11 +48,8 @@ export default function Join() {
         }
 
         setIsCheckingUsername(true);
-        console.log('✅ 아이디 입력 확인, API 호출 시작');
-        
         try {
-          const response = await postUsernameCheck(formData.username);
-          console.log('📡 API 응답:', response);
+          const response = await getUsernameCheck(formData.username);
           
           if (response.data === true) {
           
@@ -80,9 +78,9 @@ export default function Join() {
         setIsRequestingEmail(true);
         
         try {
-          const response = await postEmailCheck(formData.email);
-          
-          if (response.data === true) {
+          const response = await postRequestEmail(formData.email);
+
+          if (response.status == 200) {
             setModalContent(`인증번호가 메일로 전송되었습니다.<br/>
                 메일함을 확인해주세요.`);
           } else {
@@ -97,6 +95,41 @@ export default function Join() {
           setIsRequestingEmail(false);
         }
       };
+
+      const handleEmailVerify = async () => {
+        setIsVerifyingEmail(true);
+        if (!formData.email.trim()) {
+          setModalContent('이메일을 입력해주세요.');
+          setModalOpen(true);
+          return;
+        }
+        
+        if (!formData.verificationCode.trim()) {
+          setModalContent('인증번호를 입력해주세요.');
+          setModalOpen(true);
+          return;
+        }
+        try {
+          const response = await postVerifyEmail(formData.email, formData.verificationCode);
+          console.log('이메일 인증 응답:', response);
+          
+          if (response.status === 200 && response.data.available === true) {
+            setModalContent(response.data.message || '이메일 인증이 완료되었습니다.');
+          } else {
+            setModalContent('인증번호가 올바르지 않습니다.');
+          }
+          setModalOpen(true);
+        } catch (error) {
+          console.error('이메일 인증 에러:', error);
+          setModalContent('이메일 인증 중 오류가 발생했습니다.');
+          setModalOpen(true);
+        } finally {
+          setIsVerifyingEmail(false);
+        }
+       
+
+      };
+      
       const validateForm = () => {
         const newErrors = {};
         
@@ -165,9 +198,19 @@ export default function Join() {
         <div className="min-h-screen w-screen flex items-center justify-center py-8 px-4">
           <div className="w-full max-w-sm space-y-6">
             <div>
-              <h2 className="text-center text-2xl font-extrabold text-white mb-6">
-                회원가입
-              </h2>
+              <div className="flex items-center justify-center mb-6">
+                <button 
+                  onClick={() => navigate(-1)}
+                  className="absolute left-16 p-2 text-white rounded-full transition-colors duration-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h2 className="text-center text-2xl font-extrabold text-white">
+                  회원가입
+                </h2>
+              </div>
               <form onSubmit={handleSubmit}>
               <div className="flex flex-col gap-6 bg-white/50 border-2 border-white/50 p-6 rounded-lg shadow-xl">
               <Input
@@ -246,10 +289,12 @@ export default function Join() {
                 placeholder="인증번호를 입력하세요"
                 essential={true}
                 button={true}
-                buttonText="인증확인"
+                buttonText={isVerifyingEmail ? "확인중..." : "인증확인"}
+                onClick={handleEmailVerify}
                 value={formData.verificationCode}
                 onChange={handleChange}
                 error={errors.verificationCode}
+                buttonDisabled={isVerifyingEmail}
                 />
                  <button
                 type="submit"

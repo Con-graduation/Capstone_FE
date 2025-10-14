@@ -27,15 +27,23 @@ export const postRegister = async (email, name, username, password) => {
 };
 
 // 닉네임 중복검증
-export async function postUsernameCheck(username) {
-  const response = await client.post(`/api/auth/check/username?username=${username}`);
+export async function getUsernameCheck(username) {
+  const response = await client.get(`/api/auth/check/username?username=${username}`);
   return response;
 }
 
-// 이메일 중복검증
-export async function postEmailCheck(email) {
-  const response = await client.post("/api/auth/check/email", {
+
+export async function postRequestEmail(email) {
+  const response = await client.post("/api/auth/request-email-code", {
     email: email,
+  });
+  return response;
+}
+
+export async function postVerifyEmail(email, verificationCode) {
+  const response = await client.post("/api/auth/verify-email", {
+    email: email,
+    code: verificationCode,
   });
   return response;
 }

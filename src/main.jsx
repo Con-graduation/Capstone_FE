@@ -10,7 +10,7 @@ import MenuBar from './components/menuBar';
 
 function App() {
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login';
+  const isLoginPage = location.pathname === '/';
   const isJoinPage = location.pathname === '/join';
 
   return (

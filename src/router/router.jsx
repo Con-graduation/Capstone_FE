@@ -13,8 +13,8 @@ import Setting from "../pages/setting"
 export default function Router() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/home" element={<Home />} />
+      <Route path="/" element={<Login />} />
       <Route path="/join" element={<Join />} />
       <Route path="/recommend" element={<MusicRecommend />} />
       <Route path="/recommend/result" element={<RecommendResult />} />
