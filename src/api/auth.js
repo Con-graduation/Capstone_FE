@@ -1,9 +1,9 @@
 import client from "./client";
 
 // 로그인
-export async function postLogin(usernameOrEmail, password) {
-    const response = await client.post("/api/v1/auth/login", {
-      usernameOrEmail: usernameOrEmail,
+export async function postLogin(username, password) {
+    const response = await client.post("/api/auth/login", {
+      username: username,
       password: password,
     });
     return response;
