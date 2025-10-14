@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 
 import playIcon from '../assets/playIcon.svg';
@@ -9,10 +9,19 @@ import BarChart from '../components/BarChart';
 import googleLogo from '../assets/googleLogo.png';
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      navigate('/');
+    }
+  }, [navigate]);
+
   return (
    
       <div className="min-h-screen w-screen bg-[#EEF5FF] pb-24">
-        <div className="px-6 pt-8 flex flex-col gap-8">
+        <div className="px-6 pt-8 flex flex-col gap-12">
           <div className="flex flex-col gap-2">
             <div className="text-2xl font-bold">김시은님</div>
             <div className="flex items-center justify-between">
@@ -49,6 +58,13 @@ export default function Home() {
             title="루틴 연습 통계" 
             description="막대를 터치해주세요!" 
           />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-xl font-bold">알림 일정</p>
+            <p className="text-md text-gray-600 font-light">알림을 추가해서 루틴 연습 시간을 받을 수 있습니다</p>
+            <button className="bg-blue-400 text-white rounded-md py-2 w-64 shadow-md text-md font-bold mx-auto"
+       onClick={() => navigate('/notification/form')}>알림 추가하기 🔔</button>
           </div>
           
           <div>

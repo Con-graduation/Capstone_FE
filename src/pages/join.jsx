@@ -50,8 +50,8 @@ export default function Join() {
         setIsCheckingUsername(true);
         try {
           const response = await getUsernameCheck(formData.username);
-          
-          if (response.data === true) {
+          console.log('아이디 중복 확인 응답:', response);
+          if (response.status === 200) {
           
             setModalContent(`'${formData.username}'는 사용 가능한 아이디입니다.`);
           } else {
@@ -186,7 +186,7 @@ export default function Join() {
       const handleModalClose = () => {
         setModalOpen(false);
         if (modalContent === '회원가입이 완료되었습니다.') {
-          navigate('/login');
+          navigate('/');
         }
       };
 

@@ -9,13 +9,15 @@ import Metronome from "../pages/soundSettings/metronome"
 import Tuner from "../pages/soundSettings/tuner"
 import Audio from "../pages/soundSettings/audio"
 import Setting from "../pages/setting"
+import Notification from "../pages/notification/notification"
+import NotificationForm from "../pages/notification/notificationForm"
 
 export default function Router() {
   return (
     <Routes>
-      <Route path="/home" element={<Home />} />
       <Route path="/" element={<Login />} />
       <Route path="/join" element={<Join />} />
+      <Route path="/home" element={<Home />} />
       <Route path="/recommend" element={<MusicRecommend />} />
       <Route path="/recommend/result" element={<RecommendResult />} />
       <Route path="/mypage" element={<MyPage />} />
@@ -23,6 +25,8 @@ export default function Router() {
       <Route path="/settings/tuner" element={<Tuner />} />
       <Route path="/settings/audio" element={<Audio />} />
       <Route path="/setting" element={<Setting />} />
+      <Route path="/notification" element={<Notification />} />
+      <Route path="/notification/form" element={<NotificationForm />} />
     </Routes>
   );
 }
