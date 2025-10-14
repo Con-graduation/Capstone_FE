@@ -13,6 +13,7 @@ const Input = ({
   information=false,
   button=false,
   buttonText='',
+  buttonDisabled=false,
   onClick,
   ...props 
 }) => {
@@ -47,8 +48,18 @@ const Input = ({
         {button && (
           <button 
             type="button"
-            onClick={onClick}
-            className="px-2 py-2 border rounded-md text-white bg-blue-500 hover:shadow-md whitespace-nowrap"
+            disabled={buttonDisabled}
+            onClick={() => {
+              if (buttonDisabled) return;
+              if (onClick) {
+                onClick();
+              }
+            }}
+            className={`px-2 py-2 border rounded-md whitespace-nowrap transition-colors duration-200 ${
+              buttonDisabled 
+                ? 'bg-gray-400 text-gray-200 cursor-not-allowed' 
+                : 'bg-blue-500 text-white hover:shadow-md hover:bg-blue-600'
+            }`}
           >
             {buttonText}
           </button>

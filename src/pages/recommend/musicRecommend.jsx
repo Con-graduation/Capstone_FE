@@ -24,7 +24,7 @@ export default function MusicRecommend() {
       <p className="text-xl font-semibold ">난이도를 분석하는 중...</p>
     </div>)}
     {!loading && (
-        <div className="min-h-screen w-screen bg-[#EEF5FF] flex flex-col items-center justify-center">
+        <div className="h-[calc(100vh-8rem)] w-screen bg-[#EEF5FF] flex flex-col items-center pt-10">
             <h1 className="text-3xl font-bold text-center">맞춤 곡 추천</h1>
             <h2 className="text-xl font-semibold mt-12 mb-6">김시은님의 연습 기록을 분석한 결과</h2>
             <div className="flex flex-col gap-4">

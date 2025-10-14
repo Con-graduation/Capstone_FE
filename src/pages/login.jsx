@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import guitarImg from '../assets/guitarImg.png';
 import ResponsiveWrapper from '../components/ResponsiveWrapper';
+import { postLogin } from '../api/auth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // 간단한 유효성 검사
@@ -45,8 +46,27 @@ const Login = () => {
       return;
     }
 
-    console.log('로그인 성공:', formData);
-    navigate('/');
+    try {
+      console.log('로그인 시도:', formData.username);
+      const response = await postLogin(formData.username, formData.password);
+      console.log('로그인 성공:', response);
+      
+      // 로그인 성공 시 토큰 저장
+      if (response.data && response.data.token) {
+        localStorage.setItem('accessToken', response.data.token);
+      }
+      
+      navigate('/home');
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      
+
+        setErrors({ 
+          username: '아이디 또는 비밀번호가 올바르지 않습니다.',
+          password: '아이디 또는 비밀번호가 올바르지 않습니다.'
+        });
+      
+    }
   };
 
   return (
@@ -85,7 +105,7 @@ const Login = () => {
                 onChange={handleChange}
                 error={errors.password}
               />
-              
+            
               <button
                 type="submit"
                 className="w-full mt-4 flex justify-center py-3 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200"

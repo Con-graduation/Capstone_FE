@@ -9,7 +9,7 @@ import menu5Icon from '../assets/menu5Icon.svg';
 export default function MenuBar() {
     const navigate = useNavigate();
     const [showSubMenu, setShowSubMenu] = useState(false);
-    const path=['/recommend','/settings/metronome','/settings/tuner', '/settings/audio'];
+    const path=['/recommend','/settings/metronome','/settings/tuner', '/settings/audio', '/setting'];
     
     const handleMenu2Click = () => {
         setShowSubMenu(!showSubMenu);
@@ -58,7 +58,9 @@ export default function MenuBar() {
         
         <img src={menu3Icon} alt="menu3" className="w-8 h-8 cursor-pointer" />
         <img src={menu4Icon} alt="menu4" className="w-8 h-8 cursor-pointer" />
-        <img src={menu5Icon} alt="menu5" className="w-8 h-8 cursor-pointer" />
+        <img src={menu5Icon} alt="menu5" className="w-8 h-8 cursor-pointer" 
+        onClick={() => handleSubMenuClick(path[4])}
+        />
       </div>
     </div>
   );
