@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 
 import playIcon from '../assets/playIcon.svg';
@@ -9,6 +9,15 @@ import BarChart from '../components/BarChart';
 import googleLogo from '../assets/googleLogo.png';
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      navigate('/');
+    }
+  }, [navigate]);
+
   return (
    
       <div className="min-h-screen w-screen bg-[#EEF5FF] pb-24">

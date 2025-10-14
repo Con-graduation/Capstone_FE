@@ -4,6 +4,7 @@ import { BrowserRouter, useLocation } from "react-router-dom";
 import ResponsiveWrapper from './components/ResponsiveWrapper';
 
 import "./index.css";
+import "react-datepicker/dist/react-datepicker.css";
 import Router from "./router/router.jsx";
 import Header from './components/header';
 import MenuBar from './components/menuBar';
