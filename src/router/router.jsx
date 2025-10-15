@@ -12,6 +12,7 @@ import Setting from "../pages/setting"
 import Notification from "../pages/notification/notification"
 import NotificationForm from "../pages/notification/notificationForm"
 import PracticeStart from "../pages/practiceStart"
+import RoutineForm from "../pages/routineForm"
 
 export default function Router() {
   return (
@@ -29,6 +30,7 @@ export default function Router() {
       <Route path="/notification" element={<Notification />} />
       <Route path="/notification/form" element={<NotificationForm />} />
       <Route path="/practice/start" element={<PracticeStart />} />
+      <Route path="/routine/form" element={<RoutineForm />} />
     </Routes>
   );
 }

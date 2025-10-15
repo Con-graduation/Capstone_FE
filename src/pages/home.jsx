@@ -42,7 +42,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
           <p className="text-2xl font-bold mb-2">루틴 관리</p>
           <div className="flex items-center gap-1 border-b border-black">
-            <a href="#" className="text-sm ">루틴 생성하러 가기</a>
+            <a href="/routine/form" className="text-sm ">루틴 생성하러 가기</a>
             <img src={rightArrow} alt="rightArrow" className="w-3 h-3" />
             </div>
           </div>

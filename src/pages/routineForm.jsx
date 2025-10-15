@@ -1,0 +1,95 @@
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import Accordian from '../components/accordian';
+
+export default function RoutineForm() {
+  const navigate = useNavigate();
+  const [practiceType, setPracticeType] = useState('');
+  const [routineName, setRoutineName] = useState('');
+  const [fingerOrder, setFingerOrder] = useState('없음');
+  const [codeOrder, setCodeOrder] = useState('없음');
+  const [repeatCount, setRepeatCount] = useState('없음');
+  const [bpm, setBpm] = useState('없음');
+  return (
+    <div className="min-h-[90vh] w-screen bg-[#EEF5FF] flex flex-col px-6 pb-24">
+           
+    <h1 className="relative text-2xl font-bold text-center mt-10">알림 설정</h1>
+        <button 
+              onClick={() => navigate(-1)}
+              className="p-2 text-black rounded-full transition-colors duration-200"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+    <div className="flex flex-col items-center justify-center mt-10 gap-10 w-full">
+        <input 
+          type="text" 
+          placeholder="루틴 이름 입력" 
+          value={routineName}
+          onChange={(e) => setRoutineName(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-md shadow-md" 
+        />
+        <Accordian 
+          title="연습 유형" 
+          type="practiceType" 
+          value={practiceType || '없음'} 
+          onValueChange={setPracticeType}
+        />
+        
+        {/* 코드 전환 선택 시: 코드 순서, 반복 횟수, BPM */}
+        {practiceType === '코드 전환' && (
+          <>
+            <Accordian 
+              title="코드 순서" 
+              type="codeOrder" 
+              value={codeOrder} 
+              onValueChange={setCodeOrder}
+            />
+            <Accordian 
+              title="반복 횟수" 
+              type="repeatCount" 
+              value={repeatCount} 
+              onValueChange={setRepeatCount}
+            />
+            <Accordian 
+              title="BPM" 
+              type="bpm" 
+              value={bpm} 
+              onValueChange={setBpm}
+              practiceType={practiceType}
+            />
+          </>
+        )}
+        
+        {/* 크로매틱 연습 선택 시: 손가락 순서, 반복 횟수, BPM */}
+        {practiceType === '크로매틱 연습' && (
+          <>
+            <Accordian 
+              title="손가락 순서" 
+              type="fingerOrder" 
+              value={fingerOrder} 
+              onValueChange={setFingerOrder}
+            />
+            <Accordian 
+              title="반복 횟수" 
+              type="repeatCount" 
+              value={repeatCount} 
+              onValueChange={setRepeatCount}
+            />
+            <Accordian 
+              title="BPM" 
+              type="bpm" 
+              value={bpm} 
+              onValueChange={setBpm}
+              practiceType={practiceType}
+            />
+          </>
+        )}
+       
+        <button className="w-full p-2 bg-blue-500 text-white rounded-md mt-12 shadow-md">루틴 생성하기</button>
+       
+        </div>
+    </div>
+  )
+}
