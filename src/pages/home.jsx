@@ -30,7 +30,8 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="w-full h-36 bg-gradient-to-br from-[#5680F3] to-[#D4F4FF] rounded-md flex flex-col items-start justify-center gap-2 shadow-md px-6 hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group">
+          <div className="w-full h-36 bg-gradient-to-br from-[#5680F3] to-[#D4F4FF] rounded-md flex flex-col items-start justify-center gap-2 shadow-md px-6 hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group"
+          onClick={() => navigate('/practice/start')}>
             <div className="absolute inset-0 rounded-md bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
             <p className="text-2xl font-bold text-gray-800 relative z-10">연습 시작하기</p>
             <p className="text-lg text-gray-600 relative z-10">기타 연습 연속 7일째 🔥</p>

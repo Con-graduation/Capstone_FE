@@ -11,6 +11,7 @@ import Audio from "../pages/soundSettings/audio"
 import Setting from "../pages/setting"
 import Notification from "../pages/notification/notification"
 import NotificationForm from "../pages/notification/notificationForm"
+import PracticeStart from "../pages/practiceStart"
 
 export default function Router() {
   return (
@@ -27,6 +28,7 @@ export default function Router() {
       <Route path="/setting" element={<Setting />} />
       <Route path="/notification" element={<Notification />} />
       <Route path="/notification/form" element={<NotificationForm />} />
+      <Route path="/practice/start" element={<PracticeStart />} />
     </Routes>
   );
 }
