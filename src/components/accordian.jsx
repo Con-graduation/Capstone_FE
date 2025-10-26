@@ -6,7 +6,7 @@ import getMonth from "date-fns/getMonth";
 
 registerLocale("ko", ko);
 
-export default function Accordion({ title, type, value, onValueChange, practiceType: propPracticeType }) {
+export default function Accordion({ title, type, value, onValueChange, routineType: propRoutineType }) {
   const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [tempDate, setTempDate] = useState(null);
@@ -18,7 +18,7 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
   const [selectedEvaluationItems, setSelectedEvaluationItems] = useState([]);
   const [selectedRepeatCount, setSelectedRepeatCount] = useState('');
   const [selectedBpm, setSelectedBpm] = useState(60);
-  const [practiceType, setPracticeType] = useState('');
+  const [routineType, setroutineType] = useState('');
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [availableCodes, setAvailableCodes] = useState(['C', 'E', 'D', 'F', 'A', 'G', 'Am', 'Em']);
   const [selectedFingers, setSelectedFingers] = useState([]);
@@ -172,10 +172,10 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
   };
 
   const getBpmRange = () => {
-    const currentPracticeType = propPracticeType || practiceType;
-    if (currentPracticeType === '코드 전환') {
+    const currentroutineType = propRoutineType || routineType;
+    if (currentroutineType === '코드 전환') {
       return { min: 20, max: 80, step: 20 };
-    } else if (currentPracticeType === '크로매틱 연습') {
+    } else if (currentroutineType === '크로매틱 연습') {
       return { min: 5, max: 150, step: 5};
     }
     return { min: 20, max: 80, step: 20 }; 
@@ -187,10 +187,10 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
 
   // BPM 초기값 설정
   const getInitialBpm = () => {
-    const currentPracticeType = propPracticeType || practiceType;
-    if (currentPracticeType === '코드 전환') {
+    const currentroutineType = propRoutineType || routineType;
+    if (currentroutineType === '코드 전환') {
       return 20;
-    } else if (currentPracticeType === '크로매틱 연습') {
+    } else if (currentroutineType === '크로매틱 연습') {
       return 5;
     }
     return 20;
@@ -204,14 +204,14 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
     setIsOpen(false);
   };
 
-  const selectPracticeType = (type) => {
-    setPracticeType(type);
+  const selectroutineType = (type) => {
+    setroutineType(type);
   };
 
-  const confirmPracticeTypeSelection = () => {
+  const confirmroutineTypeSelection = () => {
     if (onValueChange) {
-      if (practiceType) {
-        onValueChange(practiceType);
+      if (routineType) {
+        onValueChange(routineType);
       } else {
         onValueChange('없음');
       }
@@ -513,7 +513,7 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
             </div>
           </div>
         );
-      case 'practiceType':
+      case 'routineType':
         return (
           <div className="p-4 bg-gray-50 rounded-md">
             <div className="flex flex-col gap-4">
@@ -523,10 +523,10 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input 
                       type="radio" 
-                      name="practiceType" 
+                      name="routineType" 
                       value="코드 전환" 
-                      checked={practiceType === '코드 전환'}
-                      onChange={(e) => selectPracticeType(e.target.value)}
+                      checked={routineType === '코드 전환'}
+                      onChange={(e) => selectroutineType(e.target.value)}
                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <span className="text-gray-700">코드 전환</span>
@@ -534,10 +534,10 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input 
                       type="radio" 
-                      name="practiceType" 
+                      name="routineType" 
                       value="크로매틱 연습"
-                      checked={practiceType === '크로매틱 연습'}
-                      onChange={(e) => selectPracticeType(e.target.value)}
+                      checked={routineType === '크로매틱 연습'}
+                      onChange={(e) => selectroutineType(e.target.value)}
                       className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <span className="text-gray-700">크로매틱 연습</span>
@@ -553,7 +553,7 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
                 </button>
                 <button 
                   className="flex-1 bg-blue-500 text-white py-2 rounded-md"
-                  onClick={confirmPracticeTypeSelection}
+                  onClick={confirmroutineTypeSelection}
                 >
                   확인
                 </button>
@@ -842,9 +842,9 @@ export default function Accordion({ title, type, value, onValueChange, practiceT
                   }
                   return value;
                 })()
-              : type === 'practiceType' && practiceType
-              ? practiceType
-              : type === 'practiceType'
+              : type === 'routineType' && routineType
+              ? routineType
+              : type === 'routineType'
               ? '없음'
               : type === 'fingerOrder' && selectedFingers.length > 0
               ? selectedFingers.join(' - ')

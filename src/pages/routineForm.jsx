@@ -1,19 +1,54 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import Accordian from '../components/accordian';
+import { postRoutine } from '../api/routine';
 
 export default function RoutineForm() {
   const navigate = useNavigate();
-  const [practiceType, setPracticeType] = useState('');
+  const [routineType, setRoutineType] = useState('');
   const [routineName, setRoutineName] = useState('');
   const [fingerOrder, setFingerOrder] = useState('없음');
   const [codeOrder, setCodeOrder] = useState('없음');
   const [repeatCount, setRepeatCount] = useState('없음');
   const [bpm, setBpm] = useState('없음');
+
+  const handleSubmit = async () => {
+    try {
+      const convertedRoutineType = routineType === '코드 전환' ? 'CHORD_CHANGE' : 
+                                   routineType === '크로매틱 연습' ? 'CHROMATIC' : '';
+      
+      let sequence = null;
+      if (routineType === '코드 전환' && codeOrder !== '없음') {
+        sequence = codeOrder.split(' - ');
+      } else if (routineType === '크로매틱 연습' && fingerOrder !== '없음') {
+        sequence = fingerOrder.split(' - ');
+      }
+      
+      const repeats = repeatCount !== '없음' ? parseInt(repeatCount.replace('회', '')) : null;
+      
+      const convertedBpm = bpm !== '없음' ? parseInt(bpm.split(' ')[0]) : null;
+      
+      const routineData = {
+        title: routineName,
+        routineType: convertedRoutineType,
+        sequence: sequence,
+        repeats: repeats,
+        bpm: convertedBpm,
+      };
+      
+      console.log('루틴 생성 요청:', routineData);
+      const response = await postRoutine(routineData);
+      console.log('루틴 생성 성공:', response);
+      navigate(-1);
+    } catch (error) {
+      console.error('루틴 생성 실패:', error);
+    }
+  };
+
   return (
     <div className="min-h-[90vh] w-screen bg-[#EEF5FF] flex flex-col px-6 pb-24">
            
-    <h1 className="relative text-2xl font-bold text-center mt-10">알림 설정</h1>
+    <h1 className="relative text-2xl font-bold text-center mt-10">루틴 설정</h1>
         <button 
               onClick={() => navigate(-1)}
               className="p-2 text-black rounded-full transition-colors duration-200"
@@ -32,13 +67,13 @@ export default function RoutineForm() {
         />
         <Accordian 
           title="연습 유형" 
-          type="practiceType" 
-          value={practiceType || '없음'} 
-          onValueChange={setPracticeType}
+          type="routineType" 
+          value={routineType || '없음'} 
+          onValueChange={setRoutineType}
         />
         
         {/* 코드 전환 선택 시: 코드 순서, 반복 횟수, BPM */}
-        {practiceType === '코드 전환' && (
+        {routineType === '코드 전환' && (
           <>
             <Accordian 
               title="코드 순서" 
@@ -57,13 +92,13 @@ export default function RoutineForm() {
               type="bpm" 
               value={bpm} 
               onValueChange={setBpm}
-              practiceType={practiceType}
+              routineType={routineType}
             />
           </>
         )}
         
         {/* 크로매틱 연습 선택 시: 손가락 순서, 반복 횟수, BPM */}
-        {practiceType === '크로매틱 연습' && (
+        {routineType === '크로매틱 연습' && (
           <>
             <Accordian 
               title="손가락 순서" 
@@ -82,12 +117,17 @@ export default function RoutineForm() {
               type="bpm" 
               value={bpm} 
               onValueChange={setBpm}
-              practiceType={practiceType}
+              routineType={routineType}
             />
           </>
         )}
        
-        <button className="w-full p-2 bg-blue-500 text-white rounded-md mt-12 shadow-md">루틴 생성하기</button>
+        <button 
+          onClick={handleSubmit}
+          className="w-full p-2 bg-blue-500 text-white rounded-md mt-12 shadow-md"
+        >
+          루틴 생성하기
+        </button>
        
         </div>
     </div>
