@@ -47,7 +47,7 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 max-w-96 mx-auto">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 max-w-1/2 mx-auto">
              <RoutineBox title="루틴 1" description="루틴 1 설명" lastDate="2025.01.01" component={["박자 정확도 체크", "코드 연습"]} />
              <RoutineBox title="루틴 2" description="루틴 2 설명" lastDate="2025.01.01" component={["스케일 연습", "핑거링 연습"]} />
              <RoutineBox title="루틴 3" description="루틴 3 설명" lastDate="2025.01.01" component={["음정 정확도 체크", "메트로놈 연습"]} />

@@ -15,6 +15,11 @@ export default function Audio() {
   } = useMicVolume();
 
   const volume = useAudioAnalyzer(userMediaStream, micVolume);
+  
+  // localStorage에 입력 감도 저장
+  useEffect(() => {
+    localStorage.setItem('micVolume', micVolume.toString());
+  }, [micVolume]);
 
   const requestMicrophoneAccess = async () => {
     try {
@@ -57,8 +62,8 @@ export default function Audio() {
           <h2 className="text-xl font-bold">입력 감도 조정</h2>
           <input
   type="range"
-  min={0}
-  max={2}
+  min={0.5}
+  max={3}
   step={0.01}
   value={micVolume}
   onChange={(e) => setMicVolume(parseFloat(e.target.value))}
