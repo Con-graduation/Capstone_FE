@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAudioAnalyzer from '../../hooks/useAudioAnalyzer';
 import { postPractice } from '../../api/practice';
+import handIcon from '../../assets/hand.png';
 
 export default function Practice() {
     const location = useLocation();
@@ -14,6 +15,76 @@ export default function Practice() {
     const [currentCount, setCurrentCount] = useState(1);
     const mediaRecorderRef = useRef(null);
     const recordedChunksRef = useRef([]);
+    const colorchip = ["#FF5757", "#FFE957", "#76DB33", "#69B6DA"]
+    const lineList = ["8.5%", "25.5%", "42%", "59%", "75%", "92%"]
+    
+   const codeLocation = {
+    "C": [
+      {fret: "1", line: lineList[4], color: colorchip[0]},
+      {fret: "2", line: lineList[2], color: colorchip[1]},
+      {fret: "3", line: lineList[1], color: colorchip[2]},
+    ],
+    "D": [
+      {fret: "2", line: lineList[3], color: colorchip[0]},
+      {fret: "2", line: lineList[5], color: colorchip[1]},
+      {fret: "3", line: lineList[4], color: colorchip[2]},
+    ],
+    "E": [
+      {fret: "1", line: lineList[3], color: colorchip[0]},
+      {fret: "2", line: lineList[1], color: colorchip[1]},
+      {fret: "2", line: lineList[2], color: colorchip[2]},
+    ],
+    "G": [
+      {fret: "2", line: lineList[1], color: colorchip[0]},
+      {fret: "3", line: lineList[0], color: colorchip[1]},
+      {fret: "3", line: lineList[5], color: colorchip[2]},
+    ],
+    "A": [
+      {fret: "2", line: lineList[2], color: colorchip[0]},
+      {fret: "2", line: lineList[4], color: colorchip[1]},
+      {fret: "2", line: lineList[4], color: colorchip[2]},
+    ],
+    "Am":[
+      {fret: "1", line: lineList[5], color: colorchip[0]},
+      {fret: "2", line: lineList[2], color: colorchip[1]},
+      {fret: "2", line: lineList[3], color: colorchip[2]},
+    ],
+    "Em":[
+      {fret: "2", line: lineList[1], color: colorchip[0]},
+      {fret: "2", line: lineList[2], color: colorchip[1]},
+    ]
+   }
+    
+    // C 코드의 가이드 점을 그리기 위한 함수
+    const renderCodeGuides = (codeName) => {
+      const code = codeLocation[codeName];
+      if (!code) return null;
+      
+      const columns = [[], [], [], [], [], []]; // 6개 열
+      
+      code.forEach(item => {
+        const columnIndex = 6 - parseInt(item.fret); // fret 1 = 열 6 (index 5), fret 2 = 열 5 (index 4), ...
+        if (columnIndex >= 0 && columnIndex < 6) {
+          columns[columnIndex].push(item);
+        }
+      });
+      
+      return columns.map((items, colIndex) => 
+        items.map((item, idx) => (
+          <div
+            key={`${colIndex}-${idx}`}
+            className="absolute w-8 h-8 rounded-full z-30"
+            style={{
+              left: '50%',
+              top: item.line,
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: item.color
+            }}
+          />
+        ))
+      );
+    }
+    
     const [gainValue, setGainValue] = useState(() => {
       // localStorage에서 입력 감도 값 가져오기 (기본값 0.5)
       const savedGain = localStorage.getItem('micVolume');
@@ -88,23 +159,23 @@ export default function Practice() {
     }, []);
     
     // 5초마다 카운트 증가하는 타이머
-    useEffect(() => {
-      if (!routineData || !userMediaStream || isPaused || currentCount >= routineData.repeats) {
-        return;
-      }
+    // useEffect(() => {
+    //   if (!routineData || !userMediaStream || isPaused || currentCount >= routineData.repeats) {
+    //     return;
+    //   }
       
-      const timer = setInterval(() => {
-        setCurrentCount(prev => {
-          if (prev >= routineData.repeats) {
-            clearInterval(timer);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 5000);
+    //   const timer = setInterval(() => {
+    //     setCurrentCount(prev => {
+    //       if (prev >= routineData.repeats) {
+    //         clearInterval(timer);
+    //         return prev;
+    //       }
+    //       return prev + 1;
+    //     });
+    //   }, 5000);
       
-      return () => clearInterval(timer);
-    }, [currentCount, routineData, userMediaStream, isPaused]);
+    //   return () => clearInterval(timer);
+    // }, [currentCount, routineData, userMediaStream, isPaused]);
     
     // 완료 체크
     useEffect(() => {
@@ -141,55 +212,42 @@ export default function Practice() {
       );
     }
   
-    return (
+  return (
       <div className="fixed inset-0 bg-[#EEF5FF] overflow-hidden w-screen h-screen">
        <div className="absolute top-1/2 left-1/2 h-screen w-screen -rotate-90 transform -translate-x-1/2 -translate-y-1/2 origin-center flex"
        style={{ width: '100vh', height: '100vw' }}>
         <div className="flex flex-col items-center justify-center">
-            <div className="flex justify-around gap-2 mt-4 w-full pl-4 pr-10">
-                <p className="text-2xl font-bold">6</p>
-                <p className="text-2xl font-bold">5</p>
-                <p className="text-2xl font-bold">4</p>
-                <p className="text-2xl font-bold">3</p>
-                <p className="text-2xl font-bold">2</p>
-                <p className="text-2xl font-bold">1</p>
+            <div className="flex mt-4 w-full text-center pl-4">
+                <p className="text-2xl font-bold w-32">6</p>
+                <p className="text-2xl font-bold w-32">5</p>
+                <p className="text-2xl font-bold w-32">4</p>
+                <p className="text-2xl font-bold w-32">3</p>
+                <p className="text-2xl font-bold w-32">2</p>
+                <p className="text-2xl font-bold w-32">1</p>
             </div>
             <div className="m-4 flex rounded-lg h-full">
-           
-  <div className="relative w-16 h-full bg-[#DBBEA2] border-r border-black rounded-l-lg overflow-hidden">
-    {[...Array(7)].map((_, i) => (
-      <div
-        key={i}
-        className="absolute left-0 w-full border-t border-black"
-        style={{ top: `${(i + 1) * (100 / 8)}%` }}
-      />
-    ))}
-  </div>
+   
 
-  {[...Array(5)].map((_, index) => (
+  {[...Array(6)].map((_, index) => (
     <div
       key={index}
-      className="relative w-36 h-full bg-[#DBBEA2] border-x border-black overflow-hidden"
+      className={`relative w-32 h-full bg-[#DBBEA2] overflow-visible ${
+        index === 0 ? 'border-r border-black rounded-l-lg' : 
+        index === 5 ? 'border-l border-black rounded-r-lg' : 
+        'border-x border-black'
+      }`}
     >
       {[...Array(7)].map((_, i) => (
         <div
           key={i}
           className="absolute left-0 w-full border-t border-black"
-          style={{ top: `${(i + 1) * (100 / 8)}%` }}
+          style={{ top: `${(i + 1) * (100 / 6) - 8}%` }}
         />
       ))}
+      {/* C 코드 가이드 점 */}
+      {renderCodeGuides("C")[index]}
     </div>
   ))}
-
-  <div className="relative w-16 h-full bg-[#DBBEA2] border-l border-black rounded-r-lg overflow-hidden">
-    {[...Array(7)].map((_, i) => (
-      <div
-        key={i}
-        className="absolute left-0 w-full border-t border-black"
-        style={{ top: `${(i + 1) * (100 / 8)}%` }}
-      />
-    ))}
-</div>
 <div className="h-full py-12 flex flex-col justify-between ml-2">
             <p className="text-2xl font-bold">X</p>
             <p className="text-2xl font-bold mt-36">O</p>
@@ -248,12 +306,16 @@ export default function Practice() {
                 </svg>
               </div>
             </div>
-  
+
+          <div className="flex items-center justify-between gap-2 w-3/4">
+            <img src={handIcon} alt="handIcon" className="w-20 h-full" />
             {routineData.bpm && (
               <div>
                 <p className="text-lg">{routineData.bpm} BPM</p>
               </div>
             )}
+          </div>
+           
           </div>
         </div>
       </div>
