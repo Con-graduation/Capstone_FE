@@ -13,20 +13,8 @@ export default function PracticeStart() {
   useEffect(() => {
     const fetchRoutine = async () => {
       try {
-        // const response = await getRoutine();
-        const response = {
-          data: [
-            {
-              title: '루틴 1',
-              routineType: 'CHORD_CHANGE',
-              sequence: ['C', 'D', 'E', 'F'],
-              repeats: 10,
-              bpm: 120,
-            },
-          ],
-        };
+        const response = await getRoutine();
         setRoutines(response.data);
-        console.log('루틴 데이터:', response.data);
       } catch (error) {
         console.error('루틴 가져오기 실패:', error);
       }

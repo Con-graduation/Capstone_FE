@@ -12,8 +12,8 @@ const client = axios.create({
 
 client.interceptors.request.use(
     (config) => {
-      // const accessToken = localStorage.getItem("accessToken");
-      const accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzYW0yNzQ2IiwiaWF0IjoxNzYwMzc3MjAyLCJleHAiOjE3NjkwMTcyMDJ9.T4nDfGLu3lv9hxKyrOrI3HJQtfURA_R65USQzWbnCoM";
+      const accessToken = localStorage.getItem("accessToken");
+      // const accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzYW0yNzQ2IiwiaWF0IjoxNzYwMzc3MjAyLCJleHAiOjE3NjkwMTcyMDJ9.T4nDfGLu3lv9hxKyrOrI3HJQtfURA_R65USQzWbnCoM";
 
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;

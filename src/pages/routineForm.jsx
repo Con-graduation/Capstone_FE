@@ -11,6 +11,7 @@ export default function RoutineForm() {
   const [codeOrder, setCodeOrder] = useState('없음');
   const [repeatCount, setRepeatCount] = useState('없음');
   const [bpm, setBpm] = useState('없음');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleSubmit = async () => {
     try {
@@ -39,7 +40,7 @@ export default function RoutineForm() {
       console.log('루틴 생성 요청:', routineData);
       const response = await postRoutine(routineData);
       console.log('루틴 생성 성공:', response);
-      navigate(-1);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('루틴 생성 실패:', error);
     }
@@ -130,6 +131,30 @@ export default function RoutineForm() {
         </button>
        
         </div>
+        
+        {/* 완료 모달 */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 w-80 flex flex-col items-center gap-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold">루틴 생성 완료!</h2>
+              <p className="text-gray-600 text-center">루틴이 성공적으로 생성되었습니다.</p>
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate(-1);
+                }}
+                className="w-full mt-4 bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        )}
     </div>
   )
 }
