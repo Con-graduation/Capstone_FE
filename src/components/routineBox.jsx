@@ -11,13 +11,9 @@ export default function RoutineBox({title, description, lastDate, component}) {
       <p className="text-sm text-gray-600">{lastDate}</p>
       </div>
       <p className="text-md text-black font-semibold">구성 요소</p>
-      <ul className="text-sm text-gray-600">
-        {component && component.map((item, index) => (
-          <li key={index} className="list-disc list-inside">
-            {item}
-          </li>
-        ))}
-      </ul>
+      <p className="text-sm text-gray-600">
+        {component && component.join(', ')}
+      </p>
     </div>
   );
 }

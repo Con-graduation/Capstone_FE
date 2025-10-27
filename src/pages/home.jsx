@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-
+import { getRoutine } from '../api/routine';
 import playIcon from '../assets/playIcon.svg';
 import RoutineBox from '../components/routineBox';
 import rightArrow from '../assets/rightArrow.svg';
@@ -10,7 +10,7 @@ import googleLogo from '../assets/googleLogo.png';
 
 export default function Home() {
   const navigate = useNavigate();
-
+const [routines, setRoutines] = useState([]);
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -18,6 +18,15 @@ export default function Home() {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchRoutine = async () => {
+      const response = await getRoutine();
+      console.log('루틴 데이터:', response.data);
+      setRoutines(response.data);
+
+    };
+    fetchRoutine();
+  }, []);
   return (
    
       <div className="min-h-screen w-screen bg-[#EEF5FF] pb-24">
@@ -48,9 +57,15 @@ export default function Home() {
           </div>
           
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 max-w-1/2 mx-auto">
-             <RoutineBox title="루틴 1" description="루틴 1 설명" lastDate="2025.01.01" component={["박자 정확도 체크", "코드 연습"]} />
-             <RoutineBox title="루틴 2" description="루틴 2 설명" lastDate="2025.01.01" component={["스케일 연습", "핑거링 연습"]} />
-             <RoutineBox title="루틴 3" description="루틴 3 설명" lastDate="2025.01.01" component={["음정 정확도 체크", "메트로놈 연습"]} />
+                {routines.map((routine) => {
+                  const routineTypeKorean = routine.routineType === 'CHORD_CHANGE' ? '코드 전환' : 
+                                         routine.routineType === 'CHROMATIC' ? '크로매틱' : 
+                                         routine.routineType;
+                  const lastDate = routine.updatedAt ? routine.updatedAt.split('T')[0] : routine.updatedAt;
+                  return (
+                    <RoutineBox key={routine.id} title={routine.title} description={routineTypeKorean} lastDate={lastDate} component={routine.sequence} />
+                  );
+                })}
           </div>
          </div>
 
