@@ -8,13 +8,14 @@ export default function Practice() {
     const location = useLocation();
     const navigate = useNavigate();
     const routineData = location.state;
-    const [showModal, setShowModal] = useState(false);
-    const [showCompleteModal, setShowCompleteModal] = useState(false);
-    const [userMediaStream, setUserMediaStream] = useState(null);
-    const [isPaused, setIsPaused] = useState(false);
-    const [currentCount, setCurrentCount] = useState(1);
-    const mediaRecorderRef = useRef(null);
-    const recordedChunksRef = useRef([]);
+  const [showModal, setShowModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [userMediaStream, setUserMediaStream] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [currentCount, setCurrentCount] = useState(1);
+  const [currentSequenceIndex, setCurrentSequenceIndex] = useState(0);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
     const colorchip = ["#FF5757", "#FFE957", "#76DB33", "#69B6DA"]
     const lineList = ["8.5%", "25.5%", "42%", "59%", "75%", "92%"]
     
@@ -41,7 +42,7 @@ export default function Practice() {
     ],
     "A": [
       {fret: "2", line: lineList[2], color: colorchip[0]},
-      {fret: "2", line: lineList[4], color: colorchip[1]},
+      {fret: "2", line: lineList[3], color: colorchip[1]},
       {fret: "2", line: lineList[4], color: colorchip[2]},
     ],
     "Am":[
@@ -56,7 +57,7 @@ export default function Practice() {
    }
     
     // C 코드의 가이드 점을 그리기 위한 함수
-    const renderCodeGuides = (codeName) => {
+    const renderCodeGuides = (codeName, sequenceIndex, bpm = 60, isPlaying = true) => {
       const code = codeLocation[codeName];
       if (!code) return null;
       
@@ -72,13 +73,15 @@ export default function Practice() {
       return columns.map((items, colIndex) => 
         items.map((item, idx) => (
           <div
-            key={`${colIndex}-${idx}`}
+            key={`${colIndex}-${idx}-${sequenceIndex}`}
             className="absolute w-8 h-8 rounded-full z-30"
             style={{
               left: '50%',
               top: item.line,
               transform: 'translate(-50%, -50%)',
-              backgroundColor: item.color
+              backgroundColor: item.color,
+              opacity: 1.0,
+              animation: isPlaying ? `fadePulse ${(60 / bpm)}s ease-in-out 4` : 'none'
             }}
           />
         ))
@@ -158,43 +161,63 @@ export default function Practice() {
       };
     }, []);
     
-    // 5초마다 카운트 증가하는 타이머
-    // useEffect(() => {
-    //   if (!routineData || !userMediaStream || isPaused || currentCount >= routineData.repeats) {
-    //     return;
-    //   }
+    // BPM 기반 인터벌로 시퀀스 인덱스 증가하는 타이머
+    useEffect(() => {
+      if (!routineData || !userMediaStream || isPaused || !routineData.sequence) {
+        return;
+      }
       
-    //   const timer = setInterval(() => {
-    //     setCurrentCount(prev => {
-    //       if (prev >= routineData.repeats) {
-    //         clearInterval(timer);
-    //         return prev;
-    //       }
-    //       return prev + 1;
-    //     });
-    //   }, 5000);
+      const beatsPerCode = 4; // 각 코드마다 4번 반복
+      // 1 beat = BPM/60 초, 4 beats = 4 * (BPM/60) 초
+      const intervalMs = (4 * (60 / routineData.bpm)) * 1000;
+      const totalBeats = routineData.repeats * routineData.sequence.length;
       
-    //   return () => clearInterval(timer);
-    // }, [currentCount, routineData, userMediaStream, isPaused]);
+      const timer = setInterval(() => {
+        setCurrentSequenceIndex(prev => {
+          if (prev >= totalBeats - 1) {
+            clearInterval(timer);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, intervalMs);
+      
+      return () => clearInterval(timer);
+    }, [routineData, userMediaStream, isPaused]);
+    
+    // 현재 코드 계산
+    const currentCode = routineData?.sequence 
+      ? routineData.sequence[currentSequenceIndex % routineData.sequence.length]
+      : '';
+    
+    // 현재 시행 횟수 계산
+    const currentRepeat = Math.floor(currentSequenceIndex / (routineData?.sequence?.length || 1)) + 1;
+    const isCompleted = currentRepeat >= (routineData?.repeats || 0);
     
     // 완료 체크
     useEffect(() => {
-      if (routineData && currentCount >= routineData.repeats) {
-        // 녹음 중지
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          mediaRecorderRef.current.stop();
-        }
+      if (routineData && routineData.sequence && isCompleted) {
+        // 마지막 시행의 애니메이션이 완료될 시간을 기다림 (4 * (60 / bpm)초)
+        const animationDuration = 4 * (60 / (routineData.bpm || 60)) * 1000;
+        const timeout = setTimeout(() => {
+          // 녹음 중지
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+          }
+          
+          // 마이크 입력 중지
+          if (userMediaStream) {
+            userMediaStream.getTracks().forEach(track => {
+              track.enabled = false;
+              track.stop();
+            });
+          }
+          setShowCompleteModal(true);
+        }, animationDuration);
         
-        // 마이크 입력 중지
-        if (userMediaStream) {
-          userMediaStream.getTracks().forEach(track => {
-            track.enabled = false;
-            track.stop();
-          });
-        }
-        setShowCompleteModal(true);
+        return () => clearTimeout(timeout);
       }
-    }, [currentCount, routineData, userMediaStream]);
+    }, [currentSequenceIndex, routineData, userMediaStream, isCompleted]);
   
     if (!routineData) {
       return (
@@ -218,20 +241,20 @@ export default function Practice() {
        style={{ width: '100vh', height: '100vw' }}>
         <div className="flex flex-col items-center justify-center">
             <div className="flex mt-4 w-full text-center pl-4">
-                <p className="text-2xl font-bold w-32">6</p>
-                <p className="text-2xl font-bold w-32">5</p>
-                <p className="text-2xl font-bold w-32">4</p>
-                <p className="text-2xl font-bold w-32">3</p>
-                <p className="text-2xl font-bold w-32">2</p>
-                <p className="text-2xl font-bold w-32">1</p>
+                <p className="text-2xl font-bold w-24">6</p>
+                <p className="text-2xl font-bold w-24">5</p>
+                <p className="text-2xl font-bold w-24">4</p>
+                <p className="text-2xl font-bold w-24">3</p>
+                <p className="text-2xl font-bold w-24">2</p>
+                <p className="text-2xl font-bold w-24">1</p>
             </div>
             <div className="m-4 flex rounded-lg h-full">
    
 
   {[...Array(6)].map((_, index) => (
     <div
-      key={index}
-      className={`relative w-32 h-full bg-[#DBBEA2] overflow-visible ${
+      key={`fret-${index}-${currentCode}-${currentSequenceIndex}`}
+      className={`relative w-24 h-full bg-[#DBBEA2] overflow-visible ${
         index === 0 ? 'border-r border-black rounded-l-lg' : 
         index === 5 ? 'border-l border-black rounded-r-lg' : 
         'border-x border-black'
@@ -244,8 +267,8 @@ export default function Practice() {
           style={{ top: `${(i + 1) * (100 / 6) - 8}%` }}
         />
       ))}
-      {/* C 코드 가이드 점 */}
-      {renderCodeGuides("C")[index]}
+      {/* 현재 코드 가이드 점 */}
+      {renderCodeGuides(currentCode, currentSequenceIndex, routineData?.bpm || 60, !isCompleted)[index]}
     </div>
   ))}
 <div className="h-full py-12 flex flex-col justify-between ml-2">
@@ -284,10 +307,14 @@ export default function Practice() {
       <h1 className="text-4xl font-bold text-gray-800">
         {routineData.title || 'Practice'}
       </h1>
+      
+      <div className="text-2xl font-bold text-gray-800">
+        현재 코드: {currentCode}
+      </div>
   
             {routineData.repeats && (
               <div className="mb-4">
-                <p className="text-xl">{currentCount}/{routineData.repeats}회 시행</p>
+                <p className="text-xl">{Math.floor(currentSequenceIndex / (routineData.sequence?.length || 1)) + 1}/{routineData.repeats}회 시행</p>
               </div>
             )}
   

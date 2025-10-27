@@ -15,6 +15,7 @@ export default function PracticeStart() {
       try {
         const response = await getRoutine();
         setRoutines(response.data);
+        console.log(response.data);
       } catch (error) {
         console.error('루틴 가져오기 실패:', error);
       }
