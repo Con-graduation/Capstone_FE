@@ -30,7 +30,8 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="w-full h-36 bg-gradient-to-br from-[#5680F3] to-[#D4F4FF] rounded-md flex flex-col items-start justify-center gap-2 shadow-md px-6 hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group">
+          <div className="w-full h-36 bg-gradient-to-br from-[#5680F3] to-[#D4F4FF] rounded-md flex flex-col items-start justify-center gap-2 shadow-md px-6 hover:scale-105 transition-all duration-300 cursor-pointer hover:shadow-lg relative overflow-hidden group"
+          onClick={() => navigate('/practice/start')}>
             <div className="absolute inset-0 rounded-md bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
             <p className="text-2xl font-bold text-gray-800 relative z-10">연습 시작하기</p>
             <p className="text-lg text-gray-600 relative z-10">기타 연습 연속 7일째 🔥</p>
@@ -41,12 +42,12 @@ export default function Home() {
           <div className="flex items-center justify-between">
           <p className="text-2xl font-bold mb-2">루틴 관리</p>
           <div className="flex items-center gap-1 border-b border-black">
-            <a href="#" className="text-sm ">루틴 생성하러 가기</a>
+            <a href="/routine/form" className="text-sm ">루틴 생성하러 가기</a>
             <img src={rightArrow} alt="rightArrow" className="w-3 h-3" />
             </div>
           </div>
           
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 max-w-96 mx-auto">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 max-w-1/2 mx-auto">
              <RoutineBox title="루틴 1" description="루틴 1 설명" lastDate="2025.01.01" component={["박자 정확도 체크", "코드 연습"]} />
              <RoutineBox title="루틴 2" description="루틴 2 설명" lastDate="2025.01.01" component={["스케일 연습", "핑거링 연습"]} />
              <RoutineBox title="루틴 3" description="루틴 3 설명" lastDate="2025.01.01" component={["음정 정확도 체크", "메트로놈 연습"]} />

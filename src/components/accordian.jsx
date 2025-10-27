@@ -6,7 +6,7 @@ import getMonth from "date-fns/getMonth";
 
 registerLocale("ko", ko);
 
-export default function Accordion({ title, type, value, onValueChange }) {
+export default function Accordion({ title, type, value, onValueChange, routineType: propRoutineType }) {
   const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [tempDate, setTempDate] = useState(null);
@@ -15,6 +15,14 @@ export default function Accordion({ title, type, value, onValueChange }) {
   const [timePeriod, setTimePeriod] = useState('');
   const [selectedHour, setSelectedHour] = useState('');
   const [selectedMinute, setSelectedMinute] = useState('');
+  const [selectedEvaluationItems, setSelectedEvaluationItems] = useState([]);
+  const [selectedRepeatCount, setSelectedRepeatCount] = useState('');
+  const [selectedBpm, setSelectedBpm] = useState(60);
+  const [routineType, setroutineType] = useState('');
+  const [selectedCodes, setSelectedCodes] = useState([]);
+  const [availableCodes, setAvailableCodes] = useState(['C', 'E', 'D', 'F', 'A', 'G', 'Am', 'Em']);
+  const [selectedFingers, setSelectedFingers] = useState([]);
+  const [availableFingers, setAvailableFingers] = useState(['1', '2', '3', '4']);
 
   const months = [
     "01", "02", "03", "04", "05", "06",
@@ -125,6 +133,144 @@ export default function Accordion({ title, type, value, onValueChange }) {
       onValueChange('없음');
     }
     setIsOpen(false);
+  };
+
+  const toggleEvaluationItem = (item) => {
+    setSelectedEvaluationItems(prev => {
+      if (prev.includes(item)) {
+        return prev.filter(i => i !== item);
+      } else {
+        return [...prev, item];
+      }
+    });
+  };
+
+  const confirmEvaluationSelection = () => {
+    if (onValueChange) {
+      if (selectedEvaluationItems.length === 0) {
+        onValueChange('없음');
+      } else {
+        onValueChange(selectedEvaluationItems.join(', '));
+      }
+    }
+    setIsOpen(false);
+  };
+
+  const selectRepeatCount = (count) => {
+    setSelectedRepeatCount(count);
+  };
+
+  const confirmRepeatCountSelection = () => {
+    if (onValueChange) {
+      if (selectedRepeatCount) {
+        onValueChange(`${selectedRepeatCount}회`);
+      } else {
+        onValueChange('없음');
+      }
+    }
+    setIsOpen(false);
+  };
+
+  const getBpmRange = () => {
+    const currentroutineType = propRoutineType || routineType;
+    if (currentroutineType === '코드 전환') {
+      return { min: 20, max: 80, step: 20 };
+    } else if (currentroutineType === '크로매틱 연습') {
+      return { min: 5, max: 150, step: 5};
+    }
+    return { min: 20, max: 80, step: 20 }; 
+  };
+
+  const handleBpmChange = (e) => {
+    setSelectedBpm(parseInt(e.target.value));
+  };
+
+  // BPM 초기값 설정
+  const getInitialBpm = () => {
+    const currentroutineType = propRoutineType || routineType;
+    if (currentroutineType === '코드 전환') {
+      return 20;
+    } else if (currentroutineType === '크로매틱 연습') {
+      return 5;
+    }
+    return 20;
+  };
+
+  const confirmBpmSelection = () => {
+    if (onValueChange) {
+      const currentBpm = selectedBpm || getInitialBpm();
+      onValueChange(`${currentBpm} BPM`);
+    }
+    setIsOpen(false);
+  };
+
+  const selectroutineType = (type) => {
+    setroutineType(type);
+  };
+
+  const confirmroutineTypeSelection = () => {
+    if (onValueChange) {
+      if (routineType) {
+        onValueChange(routineType);
+      } else {
+        onValueChange('없음');
+      }
+    }
+    setIsOpen(false);
+  };
+
+  const addCodeToSequence = (code) => {
+    if (selectedCodes.length < 4) {
+      setSelectedCodes([...selectedCodes, code]);
+    }
+  };
+
+  const removeCodeFromSequence = (index) => {
+    setSelectedCodes(selectedCodes.filter((_, i) => i !== index));
+  };
+
+  const confirmCodeOrderSelection = () => {
+    if (onValueChange) {
+      if (selectedCodes.length === 4) {
+        onValueChange(selectedCodes.join(' - '));
+      } else {
+        onValueChange('없음');
+      }
+    }
+    setIsOpen(false);
+  };
+
+  const resetCodeSelection = () => {
+    setSelectedCodes([]);
+  };
+
+  const addFingerToSequence = (finger) => {
+    if (selectedFingers.length < 4 && !selectedFingers.includes(finger)) {
+      setSelectedFingers([...selectedFingers, finger]);
+      setAvailableFingers(availableFingers.filter(f => f !== finger));
+    }
+  };
+
+  const removeFingerFromSequence = (index) => {
+    const removedFinger = selectedFingers[index];
+    setSelectedFingers(selectedFingers.filter((_, i) => i !== index));
+    setAvailableFingers([...availableFingers, removedFinger].sort());
+  };
+
+  const confirmFingerOrderSelection = () => {
+    if (onValueChange) {
+      if (selectedFingers.length === 4) {
+        onValueChange(selectedFingers.join(' - '));
+      } else {
+        onValueChange('없음');
+      }
+    }
+    setIsOpen(false);
+  };
+
+  const resetFingerSelection = () => {
+    setSelectedFingers([]);
+    setAvailableFingers(['1', '2', '3', '4']);
   };
 
   const renderContent = () => {
@@ -367,6 +513,289 @@ export default function Accordion({ title, type, value, onValueChange }) {
             </div>
           </div>
         );
+      case 'routineType':
+        return (
+          <div className="p-4 bg-gray-50 rounded-md">
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">연습 유형을 선택하세요.</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="routineType" 
+                      value="코드 전환" 
+                      checked={routineType === '코드 전환'}
+                      onChange={(e) => selectroutineType(e.target.value)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">코드 전환</span>
+                  </label>
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="routineType" 
+                      value="크로매틱 연습"
+                      checked={routineType === '크로매틱 연습'}
+                      onChange={(e) => selectroutineType(e.target.value)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <span className="text-gray-700">크로매틱 연습</span>
+                  </label>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  className="flex-1 bg-gray-400 text-white py-2 rounded-md"
+                  onClick={() => setIsOpen(false)}
+                >
+                  취소
+                </button>
+                <button 
+                  className="flex-1 bg-blue-500 text-white py-2 rounded-md"
+                  onClick={confirmroutineTypeSelection}
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      case 'fingerOrder':
+        return (
+          <div className="p-4 bg-gray-50 rounded-md">
+            <div className="flex flex-col gap-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">원하는 순서대로 배치해주세요. (4개 선택)</label>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-600 mb-2">손가락 순서</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[0, 1, 2, 3].map((index) => (
+                    <div
+                      key={index}
+                      className={`h-12 border-2 rounded-lg flex items-center justify-center bg-white ${
+                        selectedFingers[index] 
+                          ? 'border-gray-300 border-solid shadow-md' 
+                          : 'border-dashed border-gray-300'
+                      }`}
+                    >
+                      {selectedFingers[index] ? (
+                        <div className="flex items-center cursor-pointer justify-center w-full px-2"
+                        onClick={() => removeFingerFromSequence(index)}>
+                          <span className="text-blue-600 font-semibold"
+                           >{selectedFingers[index]}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-sm">빈 칸</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="grid grid-cols-4 gap-2">
+                  {availableFingers.map((finger) => (
+                    <button
+                      key={finger}
+                      onClick={() => addFingerToSequence(finger)}
+                      disabled={selectedFingers.length >= 4}
+                      className="h-12 shadow-md border border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed text-blue-700 font-semibold rounded-lg transition-colors duration-200"
+                    >
+                      {finger}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+          
+
+              <div className="flex gap-2">
+                <button 
+                  className="flex-1 bg-gray-400 text-white py-2 rounded-md"
+                  onClick={() => setIsOpen(false)}
+                >
+                  취소
+                </button>
+                <button 
+                  className="flex-1 bg-gray-500 text-white py-2 rounded-md"
+                  onClick={resetFingerSelection}
+                >
+                  초기화
+                </button>
+                <button 
+                  className="flex-1 bg-blue-500 text-white py-2 rounded-md"
+                  onClick={confirmFingerOrderSelection}
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      case 'codeOrder':
+        return (
+          <div className="p-4 bg-gray-50 rounded-md">
+            <div className="flex flex-col gap-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">원하는 순서대로 배치해주세요. (4개 선택)</label>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-600 mb-2">코드 순서</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[0, 1, 2, 3].map((index) => (
+                    <div
+                      key={index}
+                      className={`h-12 border-2 rounded-lg flex items-center justify-center bg-white ${
+                        selectedCodes[index] 
+                          ? 'border-gray-300 border-solid shadow-md' 
+                          : 'border-dashed border-gray-300'
+                      }`}
+                    >
+                      {selectedCodes[index] ? (
+                        <div className="flex items-center cursor-pointer justify-center w-full px-2"
+                        onClick={() => removeCodeFromSequence(index)}>
+                          <span className="text-blue-600 font-semibold"
+                           >{selectedCodes[index]}</span>
+
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-sm">빈 칸</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">사용 가능한 코드</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {availableCodes.map((code) => (
+                    <button
+                      key={code}
+                      onClick={() => addCodeToSequence(code)}
+                      disabled={selectedCodes.length >= 4}
+                      className="h-12 shadow-md border border-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed text-blue-700 font-semibold rounded-lg transition-colors duration-200"
+                    >
+                      {code}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button 
+                  className="flex-1 bg-gray-400 text-white py-2 rounded-md"
+                  onClick={() => setIsOpen(false)}
+                >
+                  취소
+                </button>
+                <button 
+                  className="flex-1 bg-gray-500 text-white py-2 rounded-md"
+                  onClick={resetCodeSelection}
+                >
+                  초기화
+                </button>
+                <button 
+                  className="flex-1 bg-blue-500 text-white py-2 rounded-md"
+                  onClick={confirmCodeOrderSelection}
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      case 'repeatCount':
+        return (
+          <div className="p-4 bg-gray-50 rounded-md">
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">반복할 횟수를 선택하세요.</label>
+                <div className="flex flex-wrap gap-4 justify-center mb-4">
+                  {[5, 10, 20].map((count) => (
+                    <button
+                      key={count}
+                      onClick={() => selectRepeatCount(count.toString())}
+                      className={`w-12 h-12 rounded-full transition-colors duration-200 px-2 py-1 ${
+                        selectedRepeatCount === count.toString()
+                          ? 'bg-blue-500 text-white shadow-md'
+                          : 'bg-blue-200 text-gray-700 hover:bg-blue-300'
+                      }`}
+                    >
+                      {count}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  className="flex-1 bg-gray-400 text-white py-2 rounded-md"
+                  onClick={() => setIsOpen(false)}
+                >
+                  취소
+                </button>
+                <button 
+                  className="flex-1 bg-blue-500 text-white py-2 rounded-md"
+                  onClick={confirmRepeatCountSelection}
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      case 'bpm':
+        const bpmRange = getBpmRange();
+        const initialBpm = getInitialBpm();
+        const currentBpm = selectedBpm || initialBpm;
+        return (
+          <div className="p-4 bg-gray-50 rounded-md">
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  BPM 설정 ({bpmRange.min} - {bpmRange.max})
+                </label>
+                <div className="relative">
+                  <input
+                    type="range"
+                    min={bpmRange.min}
+                    max={bpmRange.max}
+                    step={bpmRange.step}
+                    value={currentBpm}
+                    onChange={handleBpmChange}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    style={{
+                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${((currentBpm - bpmRange.min) / (bpmRange.max - bpmRange.min)) * 100}%, #e5e7eb ${((currentBpm - bpmRange.min) / (bpmRange.max - bpmRange.min)) * 100}%, #e5e7eb 100%)`
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>{bpmRange.min}</span>
+                    <span className="font-medium text-blue-600">{currentBpm}</span>
+                    <span>{bpmRange.max}</span>
+                  </div>
+                </div>
+                <div className="mt-2 text-center">
+                  <span className="text-lg font-semibold text-blue-600">{currentBpm} BPM</span>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  className="flex-1 bg-gray-400 text-white py-2 rounded-md"
+                  onClick={() => setIsOpen(false)}
+                >
+                  취소
+                </button>
+                <button 
+                  className="flex-1 bg-blue-500 text-white py-2 rounded-md"
+                  onClick={confirmBpmSelection}
+                >
+                  확인
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+     
     }
   };
 
@@ -413,6 +842,30 @@ export default function Accordion({ title, type, value, onValueChange }) {
                   }
                   return value;
                 })()
+              : type === 'routineType' && routineType
+              ? routineType
+              : type === 'routineType'
+              ? '없음'
+              : type === 'fingerOrder' && selectedFingers.length > 0
+              ? selectedFingers.join(' - ')
+              : type === 'fingerOrder'
+              ? '없음'
+              : type === 'codeOrder' && selectedCodes.length > 0
+              ? selectedCodes.join(' - ')
+              : type === 'codeOrder'
+              ? '없음'
+              : type === 'repeatCount' && selectedRepeatCount
+              ? `${selectedRepeatCount}회`
+              : type === 'repeatCount'
+              ? '없음'
+              : type === 'bpm' && selectedBpm
+              ? `${selectedBpm} BPM`
+              : type === 'bpm'
+              ? '없음'
+              : type === 'evaluationItem' && selectedEvaluationItems.length > 0
+              ? selectedEvaluationItems.join(', ')
+              : type === 'evaluationItem'
+              ? '없음'
               : value
             }
           </span>

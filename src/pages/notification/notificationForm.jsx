@@ -1,12 +1,23 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import Accordian from '../../components/accordian';
 
 export default function NotificationForm() {
     const navigate = useNavigate();
+    const [notification, setNotification] = useState({
+        title: '',
+        startDate: '',
+        endDate: '',
+        repeat: '',
+        time: '',
+    });
+    const handleChange = (e) => {
+        setNotification({ ...notification, [e.target.name]: e.target.value });
+    };
     return (
         <div className="min-h-[90vh] w-screen bg-[#EEF5FF] flex flex-col px-6 pb-24">
            
-        <h1 className="relative text-2xl font-bold text-center mt-10">알림 설정</h1>
+        <h1 className="relative text-2xl font-bold text-center mt-10">루틴 설정</h1>
             <button 
                   onClick={() => navigate(-1)}
                   className="p-2 text-black rounded-full transition-colors duration-200"

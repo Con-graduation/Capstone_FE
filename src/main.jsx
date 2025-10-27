@@ -13,12 +13,13 @@ function App() {
   const location = useLocation();
   const isLoginPage = location.pathname === '/';
   const isJoinPage = location.pathname === '/join';
+  const isPracticePage = location.pathname === '/practice';
 
   return (
     <ResponsiveWrapper desktopTitle="홈페이지 - 모바일 전용">
-      {!isLoginPage && !isJoinPage && <Header />}
+      {!isLoginPage && !isJoinPage && !isPracticePage && <Header />}
       <Router />
-      {!isLoginPage && !isJoinPage && <MenuBar />}
+      {!isLoginPage && !isJoinPage && !isPracticePage && <MenuBar />}
     </ResponsiveWrapper>
   );
 }

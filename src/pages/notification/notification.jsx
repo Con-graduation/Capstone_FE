@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import NotificationBox from '../../components/notificationBox';
 import googleLogo from '../../assets/googleLogo.png';
@@ -19,7 +19,7 @@ export default function Notification() {
        <h1 className="text-2xl font-bold text-center mt-10">알림 설정</h1>
        <div className="flex flex-col items-center justify-center mt-10 gap-10 w-full">
        
-       <div className="flex flex-col gap-8 w-full">
+       <div className="flex flex-col gap-8 w-full px-6 mx-auto">
          <div className="flex items-center justify-between">
            <h2 className="text-xl font-semibold">알림 목록</h2>
            <p className="text-md text-gray-500 font-light">알림을 클릭하면 수정할 수 있습니다.</p>
