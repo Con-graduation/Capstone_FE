@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAudioAnalyzer from '../../hooks/useAudioAnalyzer';
-import { postPractice } from '../../api/practice';
 import handIcon from '../../assets/hand.png';
+import { postPracticeComplete } from '../../api/practice';
 
 export default function Practice() {
     const location = useLocation();
@@ -10,10 +10,12 @@ export default function Practice() {
     const routineData = location.state;
   const [showModal, setShowModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [userMediaStream, setUserMediaStream] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const [currentCount, setCurrentCount] = useState(1);
   const [currentSequenceIndex, setCurrentSequenceIndex] = useState(0);
+  const [feedbackData, setFeedbackData] = useState(null);
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
     const colorchip = ["#FF5757", "#FFE957", "#76DB33", "#69B6DA"]
@@ -97,6 +99,81 @@ export default function Practice() {
     // useAudioAnalyzer로 볼륨 측정 (일시정지 중일 때는 null을 전달)
     const volume = useAudioAnalyzer(isPaused ? null : userMediaStream, gainValue);
     
+    async function convertWebMToWav(webmBlob) {
+      const arrayBuffer = await webmBlob.arrayBuffer();
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const decodedAudio = await audioCtx.decodeAudioData(arrayBuffer);
+    
+      const numOfChannels = decodedAudio.numberOfChannels;
+      const sampleRate = decodedAudio.sampleRate;
+      const numOfFrames = decodedAudio.length;
+    
+      // 각 채널 데이터를 합쳐서 interleaved PCM 생성
+      let interleaved;
+      if (numOfChannels === 2) {
+        const channelLeft = decodedAudio.getChannelData(0);
+        const channelRight = decodedAudio.getChannelData(1);
+        interleaved = interleave(channelLeft, channelRight);
+      } else {
+        interleaved = decodedAudio.getChannelData(0);
+      }
+    
+      // WAV 헤더 생성 + PCM 데이터 결합
+      const wavBuffer = encodeWAV(interleaved, sampleRate, numOfChannels);
+      return new Blob([wavBuffer], { type: 'audio/wav' });
+    }
+    
+    function interleave(left, right) {
+      const length = left.length + right.length;
+      const result = new Float32Array(length);
+      let index = 0, inputIndex = 0;
+      while (index < length) {
+        result[index++] = left[inputIndex];
+        result[index++] = right[inputIndex];
+        inputIndex++;
+      }
+      return result;
+    }
+    
+    function encodeWAV(samples, sampleRate, numOfChannels) {
+      const buffer = new ArrayBuffer(44 + samples.length * 2);
+      const view = new DataView(buffer);
+    
+      // WAV 헤더 작성
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + samples.length * 2, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, numOfChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * numOfChannels * 2, true);
+      view.setUint16(32, numOfChannels * 2, true);
+      view.setUint16(34, 16, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, samples.length * 2, true);
+    
+      // PCM 16bit 변환
+      floatTo16BitPCM(view, 44, samples);
+    
+      return buffer;
+    }
+    
+    function floatTo16BitPCM(output, offset, input) {
+      for (let i = 0; i < input.length; i++, offset += 2) {
+        let s = Math.max(-1, Math.min(1, input[i]));
+        output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+    }
+    
+    function writeString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+
+    
     // 마이크 입력 시작 및 녹음
     useEffect(() => {
       const initMicrophone = async () => {
@@ -119,26 +196,28 @@ export default function Practice() {
           };
           
           mediaRecorder.onstop = async () => {
-            const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
-            
-            // 백엔드에 전송
+            const webmBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
+           
             try {
-              const formData = new FormData();
-              formData.append('audio', blob, 'practice.webm');
+              const wavBlob = await convertWebMToWav(webmBlob); // 변환 함수 호출
               
-              // 루틴 정보도 함께 전송
-              formData.append('routineTitle', routineData.title);
-              formData.append('routineType', routineData.routineType);
-              formData.append('sequence', JSON.stringify(routineData.sequence));
-              formData.append('repeats', routineData.repeats);
-              formData.append('bpm', routineData.bpm);
+              // File 객체로 변환하여 이름 지정
+              const audioFile = new File([wavBlob], 'practice-audio.wav', { type: 'audio/wav' });
               
-              await postPractice(formData);
-              console.log('녹음 데이터 전송 완료');
+              const response = await postPracticeComplete(routineData.id, audioFile);
+
+              // 응답값 저장 후 로딩 종료 및 완료 모달 표시
+              setFeedbackData(response);
+              setIsLoading(false);
+              setShowCompleteModal(true);
+              
             } catch (error) {
               console.error('녹음 데이터 전송 실패:', error);
+              setIsLoading(false);
+              alert('데이터 전송에 실패했습니다.');
             }
           };
+          
           
           mediaRecorder.start();
         } catch (error) {
@@ -212,7 +291,7 @@ export default function Practice() {
               track.stop();
             });
           }
-          setShowCompleteModal(true);
+          setIsLoading(true);
         }, animationDuration);
         
         return () => clearTimeout(timeout);
@@ -301,7 +380,7 @@ export default function Practice() {
         </svg>
       </button>
     </div>
-    <div className="flex flex-col items-center justify-center gap-8 w-full h-full">
+    <div className="flex flex-col items-center justify-center gap-4 w-full h-full">
 
    
       <h1 className="text-4xl font-bold text-gray-800">
@@ -335,7 +414,7 @@ export default function Practice() {
             </div>
 
           <div className="flex items-center justify-between gap-2 w-3/4">
-            <img src={handIcon} alt="handIcon" className="w-20 h-full" />
+            <img src={handIcon} alt="handIcon" className="w-12 h-12" />
             {routineData.bpm && (
               <div>
                 <p className="text-lg">{routineData.bpm} BPM</p>
@@ -378,6 +457,21 @@ export default function Practice() {
         </div>
       )}
       
+      {/* 로딩 모달 */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="-rotate-90 bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h2 className="text-xl font-bold mb-6 text-center">결과 분석 중...</h2>
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+            <p className="text-center mt-6 text-gray-600">
+              잠시만 기다려주세요
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* 완료 모달 */}
       {showCompleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -392,7 +486,7 @@ export default function Practice() {
                 if (userMediaStream) {
                   userMediaStream.getTracks().forEach(track => track.stop());
                 }
-                navigate('/practice/feedBack');
+                navigate('/practice/feedBack', { state: { feedbackData } });
               }}
               className="w-full px-4 py-4 bg-blue-500 text-white rounded-md transition-colors"
             >
