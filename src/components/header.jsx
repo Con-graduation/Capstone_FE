@@ -11,21 +11,19 @@ export default function Header() {
   const fetchProfileImage = async () => {
     try {
       const response = await getProfileDownloadUrl();
-      console.log(response.downloadUrl);
       return response.downloadUrl;
     } catch (error) {
       console.error('프로필 이미지 로드 실패:', error);
       return null;
     }
   };
-
-  useEffect(() => {
-    const loadProfileImage = async () => {
-      const imageUrl = await fetchProfileImage();
-      setProfileImage(imageUrl);
-    };
-    loadProfileImage();
-  }, []);
+    useEffect(() => {
+        const loadProfileImage = async () => {
+          const imageUrl = await fetchProfileImage();
+          setProfileImage(imageUrl);
+        };
+        loadProfileImage();
+      }, []);
   
   const navigate = useNavigate();
   return (
@@ -35,9 +33,15 @@ export default function Header() {
       onClick={() => navigate('/home')}
       />
         
-        <img src={profileImage? profileImage : profile} alt="profile" className="w-8 h-8 cursor-pointer" 
-        onClick={() => navigate('/mypage')}
-        />
+        {profileImage ? (
+          <img src={profileImage} alt="profile" className="w-8 h-8 cursor-pointer rounded-full object-cover" 
+          onClick={() => navigate('/mypage')}
+          />
+        ) : (
+          <img src={profile} alt="profile" className="w-8 h-8 cursor-pointer" 
+          onClick={() => navigate('/mypage')}
+          />
+        )}
     </div>
   );
 }
