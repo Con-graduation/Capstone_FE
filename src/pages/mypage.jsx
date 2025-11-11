@@ -85,6 +85,7 @@ export default function MyPage() {
 
     const handleBackToProfile = () => {
         setIsEditMode(false);
+        
     };
     return (
         <div className="min-h-screen w-screen bg-[#EEF5FF] p-6">
@@ -96,13 +97,13 @@ export default function MyPage() {
                             돌아가기
                         </button>
                         <div className="flex flex-col items-center gap-4">
-                            <div className="relative w-32 h-32">
+                            <div className="relative w-36 h-36">
                                 {previewUrl ? (
                                     <img src={previewUrl} alt="프로필 미리보기" className="w-36 h-36 object-cover rounded-full" />
                                 ) : originalImage ? (
                                     <img src={originalImage} alt="프로필 미리보기" className="w-36 h-36 object-cover rounded-full" />
                                 ) : (
-                                    <div className="w-36 h-36 bg-gray-200 flex items-center justify-center border-2 border-gray-300 rounded-full">
+                                    <div className="w-32 h-32 bg-gray-200 flex items-center justify-center border-2 border-gray-300 rounded-full">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-gray-400">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                         </svg>
@@ -143,15 +144,15 @@ export default function MyPage() {
                 ) : (
                     <div>
                         <div className="flex items-start gap-4">
-                            <div className="relative w-32 h-32">
+                            <div className="relative w-36 h-36">
                                 {originalImage ? (
                                     <img 
                                         src={originalImage} 
                                         alt="프로필 미리보기" 
-                                        className="w-36 h-36 object-cover rounded-full"
+                                        className="w-32 h-32 object-cover rounded-full"
                                     />
                                 ) : (
-                                    <div className="w-36 h-36 bg-gray-200 flex items-center justify-center border-2 border-gray-300 rounded-full">
+                                    <div className="w-32 h-32 bg-gray-200 flex items-center justify-center border-2 border-gray-300 rounded-full">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-gray-400">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                         </svg>

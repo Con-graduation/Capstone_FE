@@ -1,35 +1,256 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { getRoutine } from '../api/routine';
-import playIcon from '../assets/playIcon.svg';
-import RoutineBox from '../components/routineBox';
-import rightArrow from '../assets/rightArrow.svg';
-import BarChart from '../components/BarChart';
-import googleLogo from '../assets/googleLogo.png';
+import { getRoutine } from "../api/routine";
+import playIcon from "../assets/playIcon.svg";
+import RoutineBox from "../components/routineBox";
+import rightArrow from "../assets/rightArrow.svg";
+import BarChart from "../components/BarChart";
+import googleLogo from "../assets/googleLogo.png";
+import { postGoogleLogin } from "../api/auth";
 
 export default function Home() {
   const navigate = useNavigate();
-const [routines, setRoutines] = useState([]);
-const name = localStorage.getItem('name');
-    
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
+  const [routines, setRoutines] = useState([]);
+  const name = localStorage.getItem("name");
 
-    if (!token) {
-      navigate('/');
-    }
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) navigate("/");
   }, [navigate]);
 
+  // ✅ Google SDK 로드 및 초기화
+useEffect(() => {
+  const initGoogleSDK = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      console.error("⚠️ GOOGLE_CLIENT_ID가 설정되지 않았습니다.");
+      return;
+    }
+
+    try {
+      // ✅ FedCM 강제 활성화
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+        scope: "email profile openid https://www.googleapis.com/auth/calendar.events"
+      });
+      
+
+      console.log("✅ Google Identity 초기화 완료");
+    } catch (err) {
+      console.error("Google Identity 초기화 실패:", err);
+    }
+  };
+
+  // 기존 SDK 제거 후 재로드 (캐시된 구버전 방지)
+  const oldScript = document.getElementById("google-oauth");
+  if (oldScript) oldScript.remove();
+
+  const script = document.createElement("script");
+  script.src = "https://accounts.google.com/gsi/client";
+  script.async = true;
+  script.defer = true;
+  script.id = "google-oauth";
+  script.onload = () => {
+    console.log("✅ Google SDK 로드 완료");
+    initGoogleSDK();
+  };
+  document.body.appendChild(script);
+
+  return () => {
+    // cleanup
+    const existing = document.getElementById("google-oauth");
+    if (existing) existing.remove();
+  };
+}, []);
+
+
+  // ✅ OAuth 리다이렉트 후 authorization code 처리
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    const error = urlParams.get("error");
+
+    if (error) {
+      console.error("구글 로그인 오류:", error);
+      alert("구글 로그인에 실패했습니다.");
+      // URL에서 에러 파라미터 제거
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
+    if (code) {
+      // authorization code를 백엔드에 전송하여 토큰으로 교환
+      handleOAuthCallback(code);
+      // URL에서 code 파라미터 제거
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  // ✅ OAuth callback 처리
+  const handleOAuthCallback = async (code) => {
+    try {
+      // 백엔드에 authorization code 전송
+      // 백엔드 API가 code를 받아서 처리하는 경우
+      const loginResponse = await postGoogleLogin(code);
+      
+      if (loginResponse.data?.token) {
+        localStorage.setItem("accessToken", loginResponse.data.token);
+        if (loginResponse.data.name) localStorage.setItem("name", loginResponse.data.name);
+        if (loginResponse.data.nickname) localStorage.setItem("nickname", loginResponse.data.nickname);
+        if (loginResponse.data.level) localStorage.setItem("level", loginResponse.data.level);
+
+        alert("✅ 구글 계정 연동이 완료되었습니다!");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("OAuth callback 처리 오류:", error);
+      alert("구글 계정 연동에 실패했습니다.");
+    }
+  };
+
+
+  const handleGoogleLogin = () => {
+    try {
+      if (!window.google || !window.google.accounts?.id) {
+        alert("구글 로그인 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+        return;
+      }
+  
+      // ✅ One Tap or FedCM prompt
+      window.google.accounts.id.prompt((notification) => {
+        if (
+          notification.isDismissedMoment() || // FedCM dismiss 대응
+          notification.isNotDisplayed() ||
+          notification.isSkippedMoment()
+        ) {
+          console.warn("One Tap 표시 불가 → 수동 로그인으로 전환");
+          handleManualGoogleLogin();
+        }
+      });
+    } catch (error) {
+      console.error("One Tap 표시 실패:", error);
+      handleManualGoogleLogin();
+    }
+  };
+  
+  const handleManualGoogleLogin = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
+  
+    if (!clientId) {
+      alert("구글 클라이언트 ID가 설정되지 않았습니다.");
+      return;
+    }
+  
+    try {
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: "email profile openid https://www.googleapis.com/auth/calendar.events",
+        redirect_uri: redirectUri,
+        callback: async (tokenResponse) => {
+          if (tokenResponse.error) {
+            console.error("구글 로그인 오류:", tokenResponse.error);
+            alert(`구글 로그인 실패: ${tokenResponse.error}`);
+            return;
+          }
+      
+          console.log("✅ 구글 토큰 획득 성공:", tokenResponse);
+          const tokenData = {
+            accessToken: tokenResponse.access_token,
+            expiresIn: tokenResponse.expires_in,
+            tokenType: tokenResponse.token_type,
+            scope: tokenResponse.scope,
+            obtainedAt: Date.now()
+          };
+          
+          
+          localStorage.setItem("googleAuth", JSON.stringify(tokenData));
+        
+        
+          // postGoogleLogin(tokenResponse.access_token) 호출
+        },
+      });
+  
+      tokenClient.requestAccessToken(); // 팝업 실행
+    } catch (err) {
+      console.error("Manual Google Login 초기화 실패:", err);
+    }
+  };
+
+  
+
+  // ✅ 구글 로그인 콜백 처리
+  const handleCredentialResponse = async (credentialResponse) => {
+    if (!credentialResponse.credential) return;
+
+    try {
+      const loginResponse = await postGoogleLogin(credentialResponse.credential);
+      if (loginResponse.data?.token) {
+        localStorage.setItem("accessToken", loginResponse.data.token);
+        if (loginResponse.data.name) localStorage.setItem("name", loginResponse.data.name);
+        if (loginResponse.data.nickname) localStorage.setItem("nickname", loginResponse.data.nickname);
+        if (loginResponse.data.level) localStorage.setItem("level", loginResponse.data.level);
+
+        alert("✅ 구글 계정 연동이 완료되었습니다!");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("구글 로그인 API 오류:", error);
+      alert("구글 계정 연동에 실패했습니다.");
+    }
+  };
+  
+
+  // ✅ 루틴 데이터 가져오기
   useEffect(() => {
     const fetchRoutine = async () => {
       const response = await getRoutine();
-      // console.log('루틴 데이터:', response.data);
       setRoutines(response.data);
-
     };
     fetchRoutine();
   }, []);
+
+  const eventData = {
+    summary: "테스트 이벤트",
+    description: "구글 캘린더 API 테스트",
+    start: {
+      dateTime: "2025-11-12T10:00:00+09:00"
+    },
+    end: {
+      dateTime: "2025-11-12T11:00:00+09:00"
+    }
+  };
+
+  async function addEventToGoogleCalendar(eventData) {
+    const tokenData = JSON.parse(localStorage.getItem("googleAuth"));
+    if (!tokenData?.accessToken) {
+      alert("먼저 구글 계정으로 로그인해주세요!");
+      return;
+    }
+  
+    const accessToken = tokenData.accessToken;
+  
+    const response = await fetch(
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(eventData)
+      }
+    );
+  
+    const result = await response.json();
+    console.log("캘린더 이벤트 추가 결과:", result);
+  }
+  
+  
+  
+
   return (
    
       <div className="min-h-screen w-screen bg-[#EEF5FF] pb-24">
@@ -90,10 +311,15 @@ const name = localStorage.getItem('name');
             <p className="text-xl font-bold mb-2">구글 캘린더에 알림 일정을 추가하세요!</p>
             <p className="text-md text-gray-600 font-light">구글 캘린더와 알림 일정을 추가하려면<br/>
             구글 계정으로 연동하세요 </p>
-            <button className="flex items-center gap-2 bg-white text-black px-16 py-2 rounded-md border border-gray-300 mx-auto mt-4 shadow-md">
+            <button 
+              onClick={handleGoogleLogin}
+              className="flex items-center gap-2 bg-white text-black px-16 py-2 rounded-md border border-gray-300 mx-auto mt-4 shadow-md hover:bg-gray-50 transition-colors"
+            >
               <img src={googleLogo} alt="googleLogo" className="w-6 h-6" />
               구글 계정으로 연동
             </button>
+
+            <button onClick={() => addEventToGoogleCalendar(eventData)}>캘린더 이벤트 추가</button>
           </div>
         </div>
        

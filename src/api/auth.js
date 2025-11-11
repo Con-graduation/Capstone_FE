@@ -48,3 +48,11 @@ export async function postVerifyEmail(email, verificationCode) {
   return response;
 }
 
+// 구글 소셜 로그인
+export async function postGoogleLogin(credential) {
+  const response = await client.post("/api/auth/google", {
+    credential: credential,
+  });
+  return response;
+}
+

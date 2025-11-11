@@ -17,13 +17,13 @@ client.interceptors.request.use(
 
       if (accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
-        console.log("✅ 토큰 포함:", config.headers.Authorization);
+        // console.log("✅ 토큰 포함:", config.headers.Authorization);
       } else {
         console.log("❌ 액세스 토큰이 없음");
       }
       
-      console.log("📤 요청 URL:", `${config.baseURL}${config.url}`);
-      console.log("📤 요청 헤더:", config.headers);
+      // console.log("📤 요청 URL:", `${config.baseURL}${config.url}`);
+      // console.log("📤 요청 헤더:", config.headers);
       return config;
     },
     (error) => {
