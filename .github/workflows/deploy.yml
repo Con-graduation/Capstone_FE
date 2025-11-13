@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  publish-souf-project:
+  publish-capstone-project:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
