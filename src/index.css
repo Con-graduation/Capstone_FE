@@ -203,3 +203,16 @@ button:focus-visible {
   background: #2563eb;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
+
+/* 가이드 점 투명도 애니메이션 */
+@keyframes fadePulse {
+  0% {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1.0;
+  }
+}

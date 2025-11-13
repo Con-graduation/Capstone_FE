@@ -55,6 +55,15 @@ const Login = () => {
       if (response.data && response.data.token) {
         localStorage.setItem('accessToken', response.data.token);
       }
+      if (response.data && response.data.name) {
+        localStorage.setItem('name', response.data.name);
+      }
+      if (response.data && response.data.nickname) {
+        localStorage.setItem('nickname', response.data.nickname);
+      }
+      if (response.data && response.data.level) {
+        localStorage.setItem('level', response.data.level);
+      }
       
       navigate('/home');
     } catch (error) {

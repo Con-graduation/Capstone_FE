@@ -1,10 +1,20 @@
-import client from './client';
+import axios from 'axios';
 
-export const postPractice = async (formData) => {
-  const response = await client.post('/api/practice', formData, {
+const SERVER_URL = import.meta.env.VITE_BASE_URL;
+
+export const postPracticeComplete = async (id, audioFile) => {
+  const formData = new FormData();
+  formData.append('audioFile', audioFile);
+  
+  const accessToken = localStorage.getItem('accessToken');
+
+  console.log('URL:', `${SERVER_URL}/api/routines/complete?routineId=${id}`);
+  
+  const response = await axios.post(`${SERVER_URL}/api/routines/complete?routineId=${id}`, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      'Authorization': `Bearer ${accessToken}`,
     },
+    withCredentials: true,
   });
   return response.data;
 };
