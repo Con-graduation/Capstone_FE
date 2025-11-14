@@ -10,14 +10,14 @@ export async function postLogin(username, password) {
   }
 
 // 회원가입
-export const postRegister = async (email, name, username, password) => {
+export const postRegister = async (email, name, username, nickname, password) => {
   try {
     const response = await client.post("/api/auth/register", {
       email: email,
       name: name,
       username: username,
+      nickname: nickname,
       password: password,
-      confirmPassword: confirmPassword,
     });
     return response.data;
   } catch (error) {

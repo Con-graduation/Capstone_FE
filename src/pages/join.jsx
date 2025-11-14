@@ -171,13 +171,18 @@ export default function Join() {
         return Object.keys(newErrors).length === 0;
       };
 
-      const handleSubmit = (e) => {
+      const handleSubmit = async (e) => {
         e.preventDefault();
         console.log('현재 입력된 데이터:', formData);
         if (validateForm()) {
-          console.log('회원가입 완료 - 전송할 데이터:', formData);
-          setModalContent('회원가입이 완료되었습니다.');
-          setModalOpen(true);
+          const response = await postRegister(formData.email, formData.name, formData.username, formData.nickname, formData.password);
+          if (response.status == 200) {
+            setModalContent('회원가입이 완료되었습니다.');
+            setModalOpen(true);
+          } else {
+            setModalContent('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+            setModalOpen(true);
+          }
         } else {
           console.log('유효성 검증 실패 - 에러:', errors);
         }
