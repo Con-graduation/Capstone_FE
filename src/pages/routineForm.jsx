@@ -12,8 +12,51 @@ export default function RoutineForm() {
   const [repeatCount, setRepeatCount] = useState('없음');
   const [bpm, setBpm] = useState('없음');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
+    // 필수 항목 검증
+    const missingFields = [];
+    
+    if (!routineName || routineName.trim() === '') {
+      missingFields.push('루틴 이름');
+    }
+    
+    if (!routineType || routineType === '') {
+      missingFields.push('연습 유형');
+    }
+    
+    if (routineType === '코드 전환') {
+      if (codeOrder === '없음') {
+        missingFields.push('코드 순서');
+      }
+      if (repeatCount === '없음') {
+        missingFields.push('반복 횟수');
+      }
+      if (bpm === '없음') {
+        missingFields.push('BPM');
+      }
+    } else if (routineType === '크로매틱 연습') {
+      if (fingerOrder === '없음') {
+        missingFields.push('손가락 순서');
+      }
+      if (repeatCount === '없음') {
+        missingFields.push('반복 횟수');
+      }
+      if (bpm === '없음') {
+        missingFields.push('BPM');
+      }
+    }
+    
+    // 미입력 항목이 있으면 alert 표시
+    if (missingFields.length > 0) {
+      const message = missingFields.map(field => `${field}을(를) 설정해주세요!`).join('\n');
+      alert(message);
+      return;
+    }
+    
+    setIsLoading(true);
+    
     try {
       const convertedRoutineType = routineType === '코드 전환' ? 'CHORD_CHANGE' : 
                                    routineType === '크로매틱 연습' ? 'CHROMATIC' : '';
@@ -40,9 +83,11 @@ export default function RoutineForm() {
       console.log('루틴 생성 요청:', routineData);
       const response = await postRoutine(routineData);
       console.log('루틴 생성 성공:', response);
+      setIsLoading(false);
       setShowSuccessModal(true);
     } catch (error) {
       console.error('루틴 생성 실패:', error);
+      setIsLoading(false);
     }
   };
 
@@ -125,9 +170,14 @@ export default function RoutineForm() {
        
         <button 
           onClick={handleSubmit}
-          className="w-full p-2 bg-blue-500 text-white rounded-md mt-12 shadow-md"
+          disabled={isLoading}
+          className={`w-full p-2 text-white rounded-md mt-12 shadow-md transition-colors ${
+            isLoading 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-blue-500 hover:bg-blue-600'
+          }`}
         >
-          루틴 생성하기
+          {isLoading ? '루틴 생성중 ..' : '루틴 생성하기'}
         </button>
        
         </div>

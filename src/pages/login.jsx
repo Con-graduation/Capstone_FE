@@ -12,6 +12,7 @@ const Login = () => {
     password: ''
   });
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,6 +47,8 @@ const Login = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
       console.log('로그인 시도:', formData.username);
       const response = await postLogin(formData.username, formData.password);
@@ -65,10 +68,11 @@ const Login = () => {
         localStorage.setItem('level', response.data.level);
       }
       
+      setIsLoading(false);
       navigate('/home');
     } catch (error) {
       console.error('로그인 실패:', error);
-      
+      setIsLoading(false);
 
         setErrors({ 
           username: '아이디 또는 비밀번호가 올바르지 않습니다.',
@@ -117,9 +121,14 @@ const Login = () => {
             
               <button
                 type="submit"
-                className="w-full mt-4 flex justify-center py-3 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200"
+                disabled={isLoading}
+                className={`w-full mt-4 flex justify-center py-3 px-4 rounded-md shadow-sm text-sm font-medium text-white transition duration-200 ${
+                  isLoading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                }`}
               >
-                로그인
+                {isLoading ? '로그인 중' : '로그인'}
               </button>
               
               <div className='flex justify-between'>

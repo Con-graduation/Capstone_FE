@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DatePicker, { registerLocale } from "react-datepicker";
 import ko from "date-fns/locale/ko";
 import getYear from "date-fns/getYear";
@@ -17,7 +17,7 @@ export default function Accordion({ title, type, value, onValueChange, routineTy
   const [selectedMinute, setSelectedMinute] = useState('');
   const [selectedEvaluationItems, setSelectedEvaluationItems] = useState([]);
   const [selectedRepeatCount, setSelectedRepeatCount] = useState('');
-  const [selectedBpm, setSelectedBpm] = useState(60);
+  const [selectedBpm, setSelectedBpm] = useState(null);
   const [routineType, setroutineType] = useState('');
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [availableCodes, setAvailableCodes] = useState(['C', 'E', 'D', 'F', 'A', 'G', 'Am', 'Em']);
@@ -198,11 +198,28 @@ export default function Accordion({ title, type, value, onValueChange, routineTy
 
   const confirmBpmSelection = () => {
     if (onValueChange) {
-      const currentBpm = selectedBpm || getInitialBpm();
-      onValueChange(`${currentBpm} BPM`);
+      if (selectedBpm === null) {
+        onValueChange('없음');
+      } else {
+        onValueChange(`${selectedBpm} BPM`);
+      }
     }
     setIsOpen(false);
   };
+
+  // value prop이 변경될 때 selectedBpm 동기화
+  useEffect(() => {
+    if (type === 'bpm') {
+      if (value === '없음' || !value) {
+        setSelectedBpm(null);
+      } else if (value.includes('BPM')) {
+        const bpmValue = parseInt(value.split(' ')[0]);
+        if (!isNaN(bpmValue)) {
+          setSelectedBpm(bpmValue);
+        }
+      }
+    }
+  }, [value, type]);
 
   const selectroutineType = (type) => {
     setroutineType(type);
@@ -747,7 +764,7 @@ export default function Accordion({ title, type, value, onValueChange, routineTy
       case 'bpm':
         const bpmRange = getBpmRange();
         const initialBpm = getInitialBpm();
-        const currentBpm = selectedBpm || initialBpm;
+        const currentBpm = selectedBpm !== null ? selectedBpm : initialBpm;
         return (
           <div className="p-4 bg-gray-50 rounded-md">
             <div className="flex flex-col gap-4">
@@ -781,7 +798,10 @@ export default function Accordion({ title, type, value, onValueChange, routineTy
               <div className="flex gap-2">
                 <button 
                   className="flex-1 bg-gray-400 text-white py-2 rounded-md"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setSelectedBpm(null);
+                    setIsOpen(false);
+                  }}
                 >
                   취소
                 </button>
@@ -858,6 +878,8 @@ export default function Accordion({ title, type, value, onValueChange, routineTy
               ? `${selectedRepeatCount}회`
               : type === 'repeatCount'
               ? '없음'
+              : type === 'bpm' && value && value !== '없음' && value.includes('BPM')
+              ? value
               : type === 'bpm' && selectedBpm
               ? `${selectedBpm} BPM`
               : type === 'bpm'
