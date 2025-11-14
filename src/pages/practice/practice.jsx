@@ -174,73 +174,92 @@ export default function Practice() {
     }
 
     
-    // 마이크 입력 시작 및 녹음
-    useEffect(() => {
-      const initMicrophone = async () => {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          setUserMediaStream(stream);
-          
-          // 녹음 시작
-          recordedChunksRef.current = [];
-          const mediaRecorder = new MediaRecorder(stream, {
-            mimeType: 'audio/webm;codecs=opus'
-          });
-          
-          mediaRecorderRef.current = mediaRecorder;
-          
-          mediaRecorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
-              recordedChunksRef.current.push(event.data);
-            }
-          };
-          
-          mediaRecorder.onstop = async () => {
-            const webmBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
-           
-            try {
-              const wavBlob = await convertWebMToWav(webmBlob); // 변환 함수 호출
-              
-              // File 객체로 변환하여 이름 지정
-              const audioFile = new File([wavBlob], 'practice-audio.wav', { type: 'audio/wav' });
-              
-              const response = await postPracticeComplete(routineData.id, audioFile);
+// 마이크 입력 시작 및 녹음
+useEffect(() => {
+  const initMicrophone = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setUserMediaStream(stream);
 
-              // 응답값 저장 후 로딩 종료 및 완료 모달 표시
-              setFeedbackData(response);
-              setIsLoading(false);
-              setShowCompleteModal(true);
-              
-            } catch (error) {
-              console.error('녹음 데이터 전송 실패:', error);
-              console.log(webmBlob)
-              setIsLoading(false);
-              alert('데이터 전송에 실패했습니다.');
-            }
-          };
-          
-          
-          mediaRecorder.start();
+      recordedChunksRef.current = [];
+
+      // 브라우저별 WAV 지원 체크
+      let options = { mimeType: 'audio/wav' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'audio/webm;codecs=opus' };
+      }
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: '' }; // Safari fallback
+      }
+
+      console.log("녹음 MIME Type:", options.mimeType);
+
+      const mediaRecorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        try {
+          // 1) webm blob 만들기
+          const webmBlob = new Blob(recordedChunksRef.current, {
+            type: recordedChunksRef.current[0].type
+          });
+      
+          console.log("원본 WEBM:", webmBlob);
+      
+          // 2) webm → wav 변환
+          const wavBlob = await convertWebMToWav(webmBlob);
+      
+          console.log("WAV Blob:", wavBlob);
+      
+          // 3) 파일 생성
+          const audioFile = new File(
+            [wavBlob],
+            "practice-audio.wav",
+            { type: "audio/wav" }
+          );
+      
+          // 4) 업로드
+          const response = await postPracticeComplete(routineData.id, audioFile);
+      
+          setFeedbackData(response);
+          setIsLoading(false);
+          setShowCompleteModal(true);
+      
         } catch (error) {
-          console.error('마이크를 시작할 수 없습니다:', error);
-          alert('마이크 권한이 필요합니다.');
-          navigate('/practice/start');
+          console.error("녹음 데이터 변환/전송 실패:", error);
+          setIsLoading(false);
         }
       };
       
-      initMicrophone();
-      
-      // Cleanup
-      return () => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          mediaRecorderRef.current.stop();
-        }
-        if (userMediaStream) {
-          userMediaStream.getTracks().forEach(track => track.stop());
-        }
-      };
-    }, []);
-    
+
+      mediaRecorder.start();
+
+    } catch (error) {
+      console.error("마이크를 시작할 수 없습니다:", error);
+      alert("마이크 권한이 필요합니다.");
+      navigate("/practice/start");
+    }
+  };
+
+  initMicrophone();
+
+  return () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    if (userMediaStream) {
+      userMediaStream.getTracks().forEach(track => track.stop());
+    }
+  };
+}, []);
+
+
     // BPM 기반 인터벌로 시퀀스 인덱스 증가하는 타이머
     useEffect(() => {
       if (!routineData || !userMediaStream || isPaused || !routineData.sequence) {
@@ -398,7 +417,7 @@ export default function Practice() {
               </div>
             )}
   
-            <div className="relative w-20 h-20 bg-gray-300 rounded-full my-10 flex items-center justify-center">
+            <div className="relative w-20 min-h-20 bg-gray-300 rounded-full my-10 flex items-center justify-center">
                 
               <div 
                 className="absolute w-24 h-24 bg-blue-300 opacity-80 rounded-full transition-all duration-75"
