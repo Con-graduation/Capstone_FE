@@ -33,3 +33,8 @@ export const postConfirmProfile = async (objectKey) => {
     const response = await client.post("/api/profile-image/confirm", requestBody);
     return response.data;
 };
+
+export const getMystats = async () => {
+    const response = await client.get(`/api/profile/stats`);
+    return response;
+  };

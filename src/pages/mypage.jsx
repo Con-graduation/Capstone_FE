@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { getProfileDownloadUrl, postProfileUploadUrl, uploadToS3, postConfirmProfile } from '../api/mypage';
+import { getProfileDownloadUrl, postProfileUploadUrl, uploadToS3, postConfirmProfile, getMystats } from '../api/mypage';
 import rightArrow from '../assets/rightArrow.svg';
+import StatCard from '../components/statCard';
 
 export default function MyPage() {
     const [profileImage, setProfileImage] = useState(null);
@@ -11,6 +12,15 @@ export default function MyPage() {
     const name = localStorage.getItem('name');
     const nickname = localStorage.getItem('nickname');
     const level = localStorage.getItem('level');
+  
+    const [expToNextLevel, setExpToNextLevel] = useState(null);
+    const [requiredExpForLevel, setRequiredExpForLevel] = useState(null);
+    const [maxAccuracy, setMaxAccuracy] = useState(null);
+
+    const [averageAccuracy, setAverageAccuracy] = useState(null);
+    const [streakDays, setStreakDays] = useState(null);
+    const [totalPracticeCount, setTotalPracticeCount] = useState(null);
+    const [totalPracticeMinutes, setTotalPracticeMinutes] = useState(null);
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -40,6 +50,19 @@ export default function MyPage() {
           const imageUrl = await fetchProfileImage();
           setOriginalImage(imageUrl);
         };
+
+        const fetchMystats = async () => {
+          const response = await getMystats();
+        //   console.log(response.data);
+          setAverageAccuracy(response.data.averageAccuracy);
+          setExpToNextLevel(response.data.expToNextLevel);
+          setRequiredExpForLevel(response.data.requiredExpForLevel);
+          setMaxAccuracy(response.data.maxAccuracy);
+          setStreakDays(response.data.streakDays);
+          setTotalPracticeCount(response.data.totalPracticeCount);
+          setTotalPracticeMinutes(response.data.totalPracticeMinutes);
+        };
+        fetchMystats();
         loadProfileImage();
       }, []);
       
@@ -143,8 +166,8 @@ export default function MyPage() {
                     </div>
                 ) : (
                     <div>
-                        <div className="flex items-start gap-4">
-                            <div className="relative w-36 h-36">
+                        <div className="flex items-start gap-8 w-full">
+                            <div className="relative flex flex-col items-centter justify-center">
                                 {originalImage ? (
                                     <img 
                                         src={originalImage} 
@@ -158,19 +181,64 @@ export default function MyPage() {
                                         </svg>
                                     </div>
                                 )}
+                            <button onClick={() => setIsEditMode(true)} className="mx-auto text-sm mt-2 bg-blue-400 text-white rounded-md hover:bg-blue-600 transition-colors">프로필 수정</button>
+
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 w-full max-w-48">
                                 <div className="flex items-center gap-2 text-2xl font-bold">
                                     <p>Lv.{level}</p><p>{nickname}</p>
                                 </div>
                                 <p className="text-sm text-gray-500">{name}</p>
+                                <div className="mt-2">
+                                    <div className="flex items-center justify-between text-sm mb-1">
+                                        <span className="text-gray-600">총 {requiredExpForLevel}경험치를 얻으세요!</span>
+                                    </div>
+                                    <div className=" w-full h-4 bg-gray-200 rounded-md overflow-hidden">
+                                        <div 
+                                            className="h-full bg-blue-400 transition-all duration-300 rounded-md"
+                                            style={{
+                                                width: requiredExpForLevel !== null && expToNextLevel !== null && requiredExpForLevel > 0
+                                                    ? `${((requiredExpForLevel - expToNextLevel) / requiredExpForLevel) * 100}%`
+                                                    : '0%'
+                                            }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1 text-right">앞으로 {expToNextLevel !== null ? expToNextLevel : 0}exp</p>
+                                </div>
+                                <div className="mt-2">
+                                    <div className="flex items-center justify-between text-sm mb-1">
+                                        <span className="text-gray-600">정확도 {maxAccuracy}% 이상을 기록하세요!</span>
+                                    </div>
+                                    <div className=" w-full h-4 bg-gray-200 rounded-md overflow-hidden">
+                                        <div 
+                                            className="h-full bg-blue-400 transition-all duration-300 rounded-md"
+                                            style={{
+                                                width: maxAccuracy !== null && averageAccuracy !== null && maxAccuracy > 0
+                                                    ? `${((maxAccuracy - averageAccuracy) / maxAccuracy) * 100}%`
+                                                    : '0%'
+                                            }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1 text-right">현재 {averageAccuracy !== null ? averageAccuracy : 0}%</p>
+                                </div>
+                                
+                               
                             </div>
                         </div>
                         <div className="mt-6">
-                            <button onClick={() => setIsEditMode(true)} className="px-4 py-2 bg-blue-400 text-white rounded-md hover:bg-blue-600 transition-colors">프로필 수정</button>
-                        </div>
+                    <p className="text-xl font-bold">내 연습 통계</p>
+                    <div className="grid grid-cols-2 gap-6 pt-4">
+                        <StatCard title="총 연습 횟수" value={totalPracticeCount} unit="번" />
+                        <StatCard title="총 연습 시간" value={totalPracticeMinutes} unit="분" />
+                        <StatCard title="연속 streak 기록" value={streakDays} unit="일" />
+                        <StatCard title="전체 정확도 평균" value={averageAccuracy} unit="%" />
                     </div>
-                )}
+                </div>
+                    </div>
+                    
+                )
+                }
+                
 
 
             </div>
