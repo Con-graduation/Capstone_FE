@@ -74,6 +74,59 @@ export default function FeedBack() {
         }
     };
 
+    // 박자 히스토리 데이터 처리
+    const prepareRhythmChartData = () => {
+        const history = feedbackData.rhythmHistory || [];
+        const labels = [];
+        const data = [];
+        
+        // 히스토리 데이터 처리
+        history.forEach((item) => {
+            if (item.practicedAt) {
+                const date = new Date(item.practicedAt);
+                const day = date.getDate(); // 날짜 추출 (예: 14)
+                labels.push(`${day}일`);
+                data.push(item.accuracy || 0);
+            }
+        });
+        
+        // 현재 피드백 데이터 추가 (맨 오른쪽)
+        const today = new Date();
+        const todayDay = today.getDate();
+        labels.push(`${todayDay}일`);
+        data.push(rhythmAccuracy);
+        
+        return { labels, data };
+    };
+
+    // 음정 히스토리 데이터 처리
+    const preparePitchChartData = () => {
+        const history = feedbackData.pitchHistory || [];
+        const labels = [];
+        const data = [];
+        
+        // 히스토리 데이터 처리
+        history.forEach((item) => {
+            if (item.practicedAt) {
+                const date = new Date(item.practicedAt);
+                const day = date.getDate(); // 날짜 추출 (예: 14)
+                labels.push(`${day}일`);
+                data.push(item.accuracy || 0);
+            }
+        });
+        
+        // 현재 피드백 데이터 추가 (맨 오른쪽)
+        const today = new Date();
+        const todayDay = today.getDate();
+        labels.push(`${todayDay}일`);
+        data.push(pitchAccuracy);
+        
+        return { labels, data };
+    };
+
+    const rhythmChartData = prepareRhythmChartData();
+    const pitchChartData = preparePitchChartData();
+
     return (
         <div className="min-h-screen w-screen bg-[#EEF5FF] flex flex-col items-center pt-10 gap-10 pb-20">
             <h1 className="text-2xl font-bold">연습 피드백</h1>
@@ -87,19 +140,21 @@ export default function FeedBack() {
                         <p className="text-3xl font-bold text-blue-500">{rhythmAccuracy}%</p>
                     </div>
                     <p className="text-md font-semibold text-center">{feedbackData.rhythmFeedback}</p>
-                    {feedbackData.rhythmWorstSection && (
-                        <p className="text-sm text-gray-600 mt-2">{feedbackData.rhythmWorstSection}</p>
-                    )}
+                   
                 </div>
             </div>
             <div className="flex flex-col items-center gap-4">
-            {/* <BarChart 
-            title="연습별 정확도 추이" 
-            description="막대를 터치해주세요!" 
-          /> */}
+            <BarChart 
+            title="지난 연습과 비교" 
+            description="막대를 터치해주세요!"
+            labels={rhythmChartData.labels}
+            data={rhythmChartData.data}
+            backgroundColor={rhythmChartData.data.map(() => 'rgba(59, 130, 246, 0.8)')}
+            borderColor={rhythmChartData.data.map(() => 'rgba(59, 130, 246, 1)')}
+          />
             <ShortFeedback type="worst" text={feedbackData.rhythmWorstSection} page="feedBack" />
-            <ShortFeedback type="comparison" text={feedbackData.rhythmComparisonSection || "지난 연습 기록이 없습니다."} page="feedBack" />
-            <ShortFeedback type="difficulty" text={feedbackData.rhythmDifficultySection || "지난 연습 기록이 없습니다."} page="feedBack" />
+            <ShortFeedback type="comparison" text={feedbackData.rhythmComparison || "지난 연습 기록이 없습니다."} page="feedBack" />
+           
             </div>
 
             
@@ -111,19 +166,21 @@ export default function FeedBack() {
                         <p className="text-3xl font-bold text-green-500">{pitchAccuracy}%</p>
                     </div>
                     <p className="text-md font-semibold text-center">{feedbackData.pitchFeedback}</p>
-                    {feedbackData.pitchWorstSection && (
-                        <p className="text-sm text-gray-600 mt-2">{feedbackData.pitchWorstSection}</p>
-                    )}
+                   
                 </div>
             </div>
             <div className="flex flex-col items-center gap-4">
-            {/* <BarChart 
-            title="연습별 정확도 추이" 
-            description="막대를 터치해주세요!" 
-          /> */}
+            <BarChart 
+            title="지난 연습과 비교" 
+            description="막대를 터치해주세요!"
+            labels={pitchChartData.labels}
+            data={pitchChartData.data}
+            backgroundColor={pitchChartData.data.map(() => 'rgba(16, 185, 129, 0.8)')}
+            borderColor={pitchChartData.data.map(() => 'rgba(16, 185, 129, 1)')}
+          />
           <ShortFeedback type="worst" text={feedbackData.pitchWorstSection} page="feedBack" />
-          <ShortFeedback type="comparison" text={feedbackData.pitchComparisonSection || "지난 연습 기록이 없습니다."} page="feedBack" />
-          <ShortFeedback type="difficulty" text={feedbackData.pitchDifficultySection || "지난 연습 기록이 없습니다."} page="feedBack" />
+          <ShortFeedback type="comparison" text={feedbackData.pitchComparison || "지난 연습 기록이 없습니다."} page="feedBack" />
+        
             </div>
         </div>
     )

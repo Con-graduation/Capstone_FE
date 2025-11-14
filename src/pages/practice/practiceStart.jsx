@@ -103,17 +103,7 @@ export default function PracticeStart() {
   </div>
 )}
 
-            <h2 className="text-xl font-semibold mr-auto mt-10">루틴 별 연습 통계</h2>
-            <div className="flex flex-col items-center justify-center gap-4 w-full">
-
-          <div>
-          <BarChart 
-            title="루틴 별 연습 횟수" 
-            description={selectedRoutine ? "막대를 터치해주세요!" : "루틴을 선택해주세요!"}
-            hasData={!!selectedRoutine}
-          />
-          </div>
-            </div>
+          
             <button 
               className={`w-full p-2 rounded-md mt-12 shadow-md transition-colors ${
                 !selectedRoutineData 

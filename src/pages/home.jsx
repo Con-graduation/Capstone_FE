@@ -8,11 +8,13 @@ import rightArrow from "../assets/rightArrow.svg";
 import BarChart from "../components/BarChart";
 import googleLogo from "../assets/googleLogo.png";
 import { postGoogleLogin } from "../api/auth";
-
+import { getGoogleStatus, postGoogleInfo } from "../api/social";
 export default function Home() {
   const navigate = useNavigate();
   const [routines, setRoutines] = useState([]);
   const name = localStorage.getItem("name");
+  const [googleStatus, setGoogleStatus] = useState(false);
+  const [googleId, setGoogleId] = useState(null);
   
   // 오늘 날짜를 "YYYY년 MM월 DD일" 형식으로 반환
   const getTodayDate = () => {
@@ -27,6 +29,29 @@ export default function Home() {
     const token = localStorage.getItem("accessToken");
     if (!token) navigate("/");
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchGoogleStatus = async () => {
+      try {
+        const response = await getGoogleStatus();
+        const googleIdValue = response.data?.googleId;
+        
+        // googleId가 있고 빈 문자열이 아니면 저장
+        if (googleIdValue && googleIdValue.trim() !== '') {
+          setGoogleId(googleIdValue);
+          setGoogleStatus(true);
+        } else {
+          setGoogleId(null);
+          setGoogleStatus(false);
+        }
+      } catch (error) {
+        console.error('구글 상태 조회 실패:', error);
+        setGoogleStatus(false);
+        setGoogleId(null);
+      }
+    };
+    fetchGoogleStatus();
+  }, []);
 
   // ✅ Google SDK 로드 및 초기화
 useEffect(() => {
@@ -156,7 +181,7 @@ useEffect(() => {
     try {
       const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId,
-        scope: "email profile openid https://www.googleapis.com/auth/calendar.events",
+        scope: "email profile openid https://www.googleapis.com/auth/calendar",
         redirect_uri: redirectUri,
         callback: async (tokenResponse) => {
           if (tokenResponse.error) {
@@ -166,23 +191,37 @@ useEffect(() => {
           }
       
           console.log("✅ 구글 토큰 획득 성공:", tokenResponse);
-          const tokenData = {
-            accessToken: tokenResponse.access_token,
-            expiresIn: tokenResponse.expires_in,
-            tokenType: tokenResponse.token_type,
-            scope: tokenResponse.scope,
-            obtainedAt: Date.now()
-          };
+          console.log("Refresh Token:", tokenResponse.refresh_token);
           
-          
-          localStorage.setItem("googleAuth", JSON.stringify(tokenData));
-        
-        
-          // postGoogleLogin(tokenResponse.access_token) 호출
+          try {
+            // 백엔드에 토큰 정보 전송
+            const response = await postGoogleInfo(
+              tokenResponse.access_token,
+              tokenResponse.refresh_token || '',
+              tokenResponse.expires_in?.toString() || '3600'
+            );
+            
+            if (response.status === 200 || response.status === 201) {
+              alert("✅ 구글 계정 연동이 완료되었습니다!");
+              // 구글 상태 다시 조회
+              const statusResponse = await getGoogleStatus();
+              const googleIdValue = statusResponse.data?.googleId;
+              if (googleIdValue && googleIdValue.trim() !== '') {
+                setGoogleId(googleIdValue);
+                setGoogleStatus(true);
+              }
+            } else {
+              alert("구글 계정 연동에 실패했습니다.");
+            }
+          } catch (error) {
+            console.error("구글 정보 전송 실패:", error);
+            alert("구글 계정 연동에 실패했습니다.");
+          }
         },
       });
   
-      tokenClient.requestAccessToken(); // 팝업 실행
+      // refresh_token 받기 위해 prompt: 'consent' 옵션 사용
+      tokenClient.requestAccessToken({ prompt: 'consent' });
     } catch (err) {
       console.error("Manual Google Login 초기화 실패:", err);
     }
@@ -190,7 +229,7 @@ useEffect(() => {
 
   
 
-  // ✅ 구글 로그인 콜백 처리
+  // ✅ 구글 로그인 콜백 처리 (ID 토큰 기반)
   const handleCredentialResponse = async (credentialResponse) => {
     if (!credentialResponse.credential) return;
 
@@ -316,6 +355,7 @@ useEffect(() => {
        onClick={() => navigate('/notification/form')}>알림 추가하기 🔔</button>
           </div>
           
+          {/* {googleStatus === false && ( */}
           <div>
             <p className="text-xl font-bold mb-2">구글 캘린더에 알림 일정을 추가하세요!</p>
             <p className="text-md text-gray-600 font-light">구글 캘린더와 알림 일정을 추가하려면<br/>
@@ -328,8 +368,9 @@ useEffect(() => {
               구글 계정으로 연동
             </button>
 
-            <button onClick={() => addEventToGoogleCalendar(eventData)}>캘린더 이벤트 추가</button>
+            {/* <button onClick={() => addEventToGoogleCalendar(eventData)}>캘린더 이벤트 추가</button> */}
           </div>
+        {/* )} */}
         </div>
        
       </div>
