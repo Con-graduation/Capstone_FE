@@ -133,37 +133,37 @@ export default function Join() {
       const validateForm = () => {
         const newErrors = {};
         
-        if (!formData.name.trim()) {
+        if (!formData.name || !formData.name.trim()) {
           newErrors.name = '이름을 입력해주세요.';
         }
         
-        if (!formData.nickname.trim()) {
+        if (!formData.nickname || !formData.nickname.trim()) {
           newErrors.nickname = '닉네임을 입력해주세요.';
         }
         
-        if (!formData.username.trim()) {
+        if (!formData.username || !formData.username.trim()) {
           newErrors.username = '아이디를 입력해주세요.';
         }
         
-        if (!formData.password.trim()) {
+        if (!formData.password || !formData.password.trim()) {
           newErrors.password = '비밀번호를 입력해주세요.';
         } else if (formData.password.length < 6) {
           newErrors.password = '비밀번호는 6자 이상이어야 합니다.';
         }
         
-        if (!formData.confirmPassword.trim()) {
+        if (!formData.confirmPassword || !formData.confirmPassword.trim()) {
           newErrors.confirmPassword = '비밀번호 확인을 입력해주세요.';
         } else if (formData.password !== formData.confirmPassword) {
           newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
         }
         
-        if (!formData.email.trim()) {
+        if (!formData.email || !formData.email.trim()) {
           newErrors.email = '이메일을 입력해주세요.';
         } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
           newErrors.email = '올바른 이메일 형식을 입력해주세요.';
         }
         
-        if (!formData.verificationCode.trim()) {
+        if (!formData.verificationCode || !formData.verificationCode.trim()) {
           newErrors.verificationCode = '인증번호를 입력해주세요.';
         }
         
@@ -175,12 +175,28 @@ export default function Join() {
         e.preventDefault();
         console.log('현재 입력된 데이터:', formData);
         if (validateForm()) {
-          const response = await postRegister(formData.email, formData.name, formData.username, formData.nickname, formData.password);
-          if (response.status == 200) {
-            setModalContent('회원가입이 완료되었습니다.');
-            setModalOpen(true);
-          } else {
-            setModalContent('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+          try {
+            const response = await postRegister(formData.email, formData.name, formData.username, formData.nickname, formData.password);
+            if (response.status === 200 || response.status === 201) {
+              setModalContent('회원가입이 완료되었습니다.');
+              setModalOpen(true);
+            } else {
+              setModalContent('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+              setModalOpen(true);
+            }
+          } catch (error) {
+            console.error('회원가입 에러:', error);
+            
+            // 409 Conflict 오류 처리 (중복된 이메일, 사용자명, 닉네임 등)
+            if (error.response && error.response.status === 409) {
+              const errorMessage = error.response?.data?.message || error.response?.data?.error || '이미 사용 중인 이메일, 아이디 또는 닉네임입니다.';
+              setModalContent(errorMessage);
+            } else if (error.response && error.response.status === 400) {
+              const errorMessage = error.response?.data?.message || error.response?.data?.error || '입력한 정보를 확인해주세요.';
+              setModalContent(errorMessage);
+            } else {
+              setModalContent('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+            }
             setModalOpen(true);
           }
         } else {

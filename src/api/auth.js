@@ -10,20 +10,15 @@ export async function postLogin(username, password) {
   }
 
 // 회원가입
-export const postRegister = async (email, name, username, nickname, password) => {
-  try {
-    const response = await client.post("/api/auth/register", {
-      email: email,
-      name: name,
-      username: username,
-      nickname: nickname,
-      password: password,
-    });
-    return response.data;
-  } catch (error) {
-    console.error("회원가입 에러:", error);
-    throw error;
-  }
+export const postRegister = async (email, name, username,nickname, password) => {
+  const response = await client.post("/api/auth/register", {
+    email: email,
+    name: name,
+    username: username,
+    password: password,
+    nickname: nickname,
+  });
+  return response;
 };
 
 // 닉네임 중복검증

@@ -16,6 +16,9 @@ export default function Practice() {
   const [currentCount, setCurrentCount] = useState(1);
   const [currentSequenceIndex, setCurrentSequenceIndex] = useState(0);
   const [feedbackData, setFeedbackData] = useState(null);
+  // 크로매틱 연습용 상태
+  const [chromaticIndex, setChromaticIndex] = useState(0); // 현재 점의 인덱스 (0부터 시작)
+  const [chromaticCycleIndex, setChromaticCycleIndex] = useState(0); // 현재 사이클 인덱스
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
     const colorchip = ["#FF5757", "#FFE957", "#76DB33", "#69B6DA"]
@@ -84,6 +87,90 @@ export default function Practice() {
               backgroundColor: item.color,
               opacity: 1.0,
               animation: isPlaying ? `fadePulse ${(60 / bpm)}s ease-in-out 4` : 'none'
+            }}
+          />
+        ))
+      );
+    }
+    
+    // 크로매틱 연습용 점 렌더링 함수
+    const renderChromaticGuides = (fingerSequence, chromaticIndex, bpm = 60, isPlaying = true) => {
+      if (!fingerSequence || fingerSequence.length === 0) return null;
+      
+      const actualRows = 6; // 실제 행은 6개로 고정
+      const stepsPerCycle = fingerSequence.length * actualRows;
+      const cyclesPerRepeat = 9; // 사이클 0~8까지 (총 9개 사이클) = 1회
+      const stepsPerRepeat = stepsPerCycle * cyclesPerRepeat;
+      const totalSteps = stepsPerRepeat * (routineData.repeats || 0);
+      
+      if (chromaticIndex >= totalSteps) return null;
+      
+      // 현재 사이클 번호 계산 (0부터 시작, 전체 사이클)
+      const totalCycle = Math.floor(chromaticIndex / stepsPerCycle);
+      // 현재 반복 내의 사이클 번호 (0~8)
+      const cycleInRepeat = totalCycle % cyclesPerRepeat;
+      // 현재 사이클 내 위치 (0 ~ stepsPerCycle-1)
+      const positionInCycle = chromaticIndex % stepsPerCycle;
+      // 현재 행: 사이클 내 위치를 fingerSequence.length로 나눈 몫
+      const rowInCycle = Math.floor(positionInCycle / fingerSequence.length);
+      
+      // 홀수 사이클(1, 3, 5...): 위로 (마지막 행부터 첫 행까지)
+      // 짝수 사이클(0, 2, 4...): 아래로 (첫 행부터 마지막 행까지)
+      const isOddCycle = cycleInRepeat % 2 === 1;
+      const currentRow = isOddCycle ? (actualRows - 1 - rowInCycle) : rowInCycle;
+      
+      // 현재 손가락 순서 인덱스: chromaticIndex를 fingerSequence.length로 나눈 나머지
+      const fingerIndex = chromaticIndex % fingerSequence.length;
+      // 기본 열 번호 매핑: fret 1 = 열 6 (index 5), fret 2 = 열 5 (index 4), ..., fret 6 = 열 1 (index 0)
+      let baseColumnNumber = 6 - parseInt(fingerSequence[fingerIndex]); // 열 번호 (0~5, 손가락 1~6)
+      
+      // 사이클 0~6: 숫자 1~6, 2~7, 3~8, 4~9, 5~10, 6~11, 7~12
+      // 사이클 7: 숫자 7~12 고정, 가이드 점 이동(8~11열중 손가락 순서대로)
+      // 사이클 8: 숫자 7~12 고정, 가이드 점 이동(9~12열중 손가락 순서대로)
+      // 사이클 9: 리셋 (다시 사이클 0부터)
+      if (cycleInRepeat === 7) {
+        // 사이클 7: 8~11열 (원래 6~9열에서 +2)
+        const columnOffset = 2;
+        baseColumnNumber = baseColumnNumber - columnOffset;
+        if (baseColumnNumber < 0) {
+          baseColumnNumber = 0;
+        }
+      } else if (cycleInRepeat === 8) {
+        // 사이클 8: 9~12열 (원래 6~9열에서 +3)
+        const columnOffset = 3;
+        baseColumnNumber = baseColumnNumber - columnOffset;
+        if (baseColumnNumber < 0) {
+          baseColumnNumber = 0;
+        }
+      }
+      
+      const columnNumber = baseColumnNumber;
+      
+      // 컬러는 열 번호에 따라 결정: 1열(colorchip[0]), 2열(colorchip[1]), 3열(colorchip[2]), 4열(colorchip[3]) 순서로 반복
+      const colorIndex = (5 - columnNumber) % colorchip.length;
+      
+      const columns = [[], [], [], [], [], []]; // 6개 열
+      
+      if (columnNumber >= 0 && columnNumber < 6 && currentRow >= 0 && currentRow < 6) {
+        columns[columnNumber].push({
+          row: currentRow,
+          top: lineList[currentRow],
+          color: colorchip[colorIndex]
+        });
+      }
+      
+      return columns.map((items, colIndex) => 
+        items.map((item, idx) => (
+          <div
+            key={`chromatic-${colIndex}-${idx}-${chromaticIndex}`}
+            className="absolute w-8 h-8 rounded-full z-30"
+            style={{
+              left: '50%',
+              top: item.top,
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: item.color,
+              opacity: 1.0,
+              animation: isPlaying ? `fadePulse ${(60 / bpm)}s ease-in-out 1` : 'none'
             }}
           />
         ))
@@ -260,9 +347,45 @@ useEffect(() => {
 }, []);
 
 
-    // BPM 기반 인터벌로 시퀀스 인덱스 증가하는 타이머
+    // 크로매틱 연습용 타이머 (1bpm당 1개씩 점 이동)
     useEffect(() => {
-      if (!routineData || !userMediaStream || isPaused || !routineData.sequence) {
+      if (!routineData || !userMediaStream || isPaused || routineData.routineType !== 'CHROMATIC' || !routineData.sequence) {
+        return;
+      }
+      
+      const actualRows = 6; // 실제 행은 6개로 고정
+      const fingerSequence = routineData.sequence; // 손가락 순서 배열 (예: ['1', '4', '2', '3'])
+      const stepsPerCycle = fingerSequence.length * actualRows; // 한 사이클당 스텝 수
+      
+      // 9열~12열의 수행을 다 마치면 끝나게: 사이클 0~8까지 (1~4열부터 9~12열까지, 가장 큰 수가 12가 될 때까지) = 1회
+      // 사이클 0~6: 숫자 1~6, 숫자 2~7, 숫자 3~8, 숫자 4~9, 숫자 5~10, 숫자 6~11, 숫자 7~12
+      // 사이클 7: 숫자 7~12 고정, 가이드 점 이동(8~11열중 손가락 순서대로)
+      // 사이클 8: 숫자 7~12 고정, 가이드 점 이동(9~12열중 손가락 순서대로)
+      // 리셋 (다시 사이클 0부터)
+      const cyclesPerRepeat = 9; // 사이클 0~8까지 (총 9개 사이클) = 1회
+      const stepsPerRepeat = stepsPerCycle * cyclesPerRepeat; // 1회당 스텝 수
+      const totalSteps = stepsPerRepeat * (routineData.repeats || 0); // 전체 스텝 수
+      
+      // 1 beat = 60 / BPM 초
+      const intervalMs = (60 / routineData.bpm) * 1000;
+      
+      const timer = setInterval(() => {
+        setChromaticIndex(prev => {
+          if (prev >= totalSteps - 1) {
+            clearInterval(timer);
+            return prev;
+          }
+          
+          return prev + 1;
+        });
+      }, intervalMs);
+      
+      return () => clearInterval(timer);
+    }, [routineData, userMediaStream, isPaused]);
+    
+    // BPM 기반 인터벌로 시퀀스 인덱스 증가하는 타이머 (코드 전환용)
+    useEffect(() => {
+      if (!routineData || !userMediaStream || isPaused || routineData.routineType === 'CHROMATIC' || !routineData.sequence) {
         return;
       }
       
@@ -290,14 +413,40 @@ useEffect(() => {
       : '';
     
     // 현재 시행 횟수 계산
-    const currentRepeat = Math.floor(currentSequenceIndex / (routineData?.sequence?.length || 1)) + 1;
-    const isCompleted = currentRepeat >= (routineData?.repeats || 0);
+    const currentRepeat = routineData?.routineType === 'CHROMATIC'
+      ? (() => {
+          // 크로매틱: 사이클 0~8까지 (1~4열부터 9~12열까지, 가장 큰 수가 12가 될 때까지) 완료해야 1회
+          const actualRows = 6;
+          const fingerSequence = routineData?.sequence || [];
+          if (fingerSequence.length === 0) return 1;
+          const stepsPerCycle = fingerSequence.length * actualRows;
+          const cyclesPerRepeat = 9; // 사이클 0~8까지 (총 9개 사이클) = 1회
+          const stepsPerRepeat = stepsPerCycle * cyclesPerRepeat;
+          return Math.floor(chromaticIndex / stepsPerRepeat) + 1;
+        })()
+      : Math.floor(currentSequenceIndex / (routineData?.sequence?.length || 1)) + 1;
+    
+    // 크로매틱 완료 체크: repeats 횟수만큼 사이클 0~8 반복 완료 (가장 큰 수가 12가 될 때까지)
+    const isCompleted = routineData?.routineType === 'CHROMATIC'
+      ? (() => {
+          const actualRows = 6;
+          const fingerSequence = routineData?.sequence || [];
+          if (fingerSequence.length === 0) return false;
+          const stepsPerCycle = fingerSequence.length * actualRows;
+          const cyclesPerRepeat = 9; // 사이클 0~8까지 (총 9개 사이클) = 1회
+          const stepsPerRepeat = stepsPerCycle * cyclesPerRepeat;
+          const totalSteps = stepsPerRepeat * (routineData?.repeats || 0);
+          return chromaticIndex >= totalSteps - 1;
+        })()
+      : currentRepeat >= (routineData?.repeats || 0);
     
     // 완료 체크
     useEffect(() => {
       if (routineData && routineData.sequence && isCompleted) {
-        // 마지막 시행의 애니메이션이 완료될 시간을 기다림 (4 * (60 / bpm)초)
-        const animationDuration = 4 * (60 / (routineData.bpm || 60)) * 1000;
+        // 마지막 시행의 애니메이션이 완료될 시간을 기다림
+        const animationDuration = routineData.routineType === 'CHROMATIC'
+          ? (60 / (routineData.bpm || 60)) * 1000 // 크로매틱: 1 beat
+          : 4 * (60 / (routineData.bpm || 60)) * 1000; // 코드 전환: 4 beats
         const timeout = setTimeout(() => {
           // 녹음 중지
           if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -316,7 +465,7 @@ useEffect(() => {
         
         return () => clearTimeout(timeout);
       }
-    }, [currentSequenceIndex, routineData, userMediaStream, isCompleted]);
+    }, [currentSequenceIndex, chromaticIndex, routineData, userMediaStream, isCompleted]);
   
     if (!routineData) {
       return (
@@ -340,25 +489,61 @@ useEffect(() => {
        style={{ width: '100vh', height: '100vw' }}>
         <div className="flex flex-col items-center justify-center">
             <div className="flex mt-4 w-full text-center pl-4">
-                <p className="text-2xl font-bold w-24">6</p>
-                <p className="text-2xl font-bold w-24">5</p>
-                <p className="text-2xl font-bold w-24">4</p>
-                <p className="text-2xl font-bold w-24">3</p>
-                <p className="text-2xl font-bold w-24">2</p>
-                <p className="text-2xl font-bold w-24">1</p>
+              {routineData?.routineType === 'CHROMATIC' ? (
+                // 크로매틱: 사이클에 따라 동적으로 변경 (1~6, 2~7, 3~8... 최대 7~12)
+                (() => {
+                  const actualRows = 6; // 실제 행은 6개로 고정
+                  const maxColumns = 12; // 열은 12개까지
+                  const fingerSequence = routineData?.sequence || [];
+                  if (fingerSequence.length === 0) {
+                    return [...Array(6)].map((_, i) => (
+                      <p key={i} className="text-2xl font-bold w-24">{6 - i}</p>
+                    ));
+                  }
+                  
+                  // 현재 사이클 번호 계산 (렌더링 함수와 동일한 로직)
+                  const stepsPerCycle = fingerSequence.length * actualRows;
+                  const cyclesPerRepeat = 9; // 사이클 0~8까지 (총 9개 사이클) = 1회
+                  const totalCycle = Math.floor(chromaticIndex / stepsPerCycle);
+                  // 현재 반복 내의 사이클 번호 (0~8)
+                  const cycleInRepeat = totalCycle % cyclesPerRepeat;
+                  
+                  // 방향이 바뀔 때마다 숫자 증가 (사이클이 바뀔 때마다)
+                  // 사이클 0~6: 숫자 1~6, 2~7, 3~8, 4~9, 5~10, 6~11, 7~12
+                  // 사이클 7~8: 숫자 7~12 고정
+                  const maxCycle = 6; // 마지막 열이 12가 되는 사이클
+                  const cycle = Math.min(cycleInRepeat, maxCycle);
+                  const startNumber = cycle + 1; // 사이클 0: 1, 사이클 1: 2, ..., 사이클 6: 7 (사이클 7~8도 7~12)
+                  return [...Array(6)].map((_, i) => {
+                    const number = startNumber + (5 - i);
+                    return <p key={i} className="text-2xl font-bold w-24">{number}</p>;
+                  });
+                })()
+              ) : (
+                // 코드 전환: 6~1 표시
+                <>
+                  <p className="text-2xl font-bold w-24">6</p>
+                  <p className="text-2xl font-bold w-24">5</p>
+                  <p className="text-2xl font-bold w-24">4</p>
+                  <p className="text-2xl font-bold w-24">3</p>
+                  <p className="text-2xl font-bold w-24">2</p>
+                  <p className="text-2xl font-bold w-24">1</p>
+                </>
+              )}
             </div>
             <div className="m-4 flex rounded-lg h-full">
    
 
   {[...Array(6)].map((_, index) => (
     <div
-      key={`fret-${index}-${currentCode}-${currentSequenceIndex}`}
+      key={`fret-${index}-${routineData?.routineType === 'CHROMATIC' ? chromaticIndex : currentCode}-${routineData?.routineType === 'CHROMATIC' ? chromaticIndex : currentSequenceIndex}`}
       className={`relative w-24 h-full bg-[#DBBEA2] overflow-visible ${
         index === 0 ? 'border-r border-black rounded-l-lg' : 
         index === 5 ? 'border-l border-black rounded-r-lg' : 
         'border-x border-black'
       }`}
     >
+      {/* 항상 6개 행 */}
       {[...Array(7)].map((_, i) => (
         <div
           key={i}
@@ -366,15 +551,20 @@ useEffect(() => {
           style={{ top: `${(i + 1) * (100 / 6) - 8}%` }}
         />
       ))}
-      {/* 현재 코드 가이드 점 */}
-      {renderCodeGuides(currentCode, currentSequenceIndex, routineData?.bpm || 60, !isCompleted)[index]}
+      {/* 가이드 점 */}
+      {routineData?.routineType === 'CHROMATIC' 
+        ? renderChromaticGuides(routineData?.sequence, chromaticIndex, routineData?.bpm || 60, !isCompleted)[index]
+        : renderCodeGuides(currentCode, currentSequenceIndex, routineData?.bpm || 60, !isCompleted)[index]
+      }
     </div>
   ))}
-<div className="h-full py-12 flex flex-col justify-between ml-2">
+  {routineData?.routineType === 'CODE' ? (
+          <div className="h-full py-12 flex flex-col justify-between ml-2">
             <p className="text-2xl font-bold">X</p>
             <p className="text-2xl font-bold mt-36">O</p>
             <p className="text-2xl font-bold">O</p>
            </div>
+           ) : (<></>)}
            </div>
           
         </div>
@@ -408,12 +598,15 @@ useEffect(() => {
       </h1>
       
       <div className="text-lg font-bold text-gray-800">
-        현재 코드: {currentCode}
+        {routineData?.routineType === 'CHROMATIC' 
+          ? ``
+          : `현재 코드: ${currentCode}`
+        }
       </div>
   
             {routineData.repeats && (
               <div className="mb-4">
-                <p className="text-sm">{Math.floor(currentSequenceIndex / (routineData.sequence?.length || 1)) + 1}/{routineData.repeats}회 시행</p>
+                <p className="text-sm">{currentRepeat}/{routineData.repeats}회 시행</p>
               </div>
             )}
   

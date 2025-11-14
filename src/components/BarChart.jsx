@@ -19,14 +19,14 @@ ChartJS.register(
   Legend
 );
 
-const BarChart = ({ title = "루틴 연습 통계", description = "막대를 터치해주세요!", hasData = true }) => {
+const BarChart = ({ title = "루틴 연습 통계", description = "막대를 터치해주세요!", labels, data: chartData, backgroundColor, borderColor }) => {
   const data = {
-    labels: ['월', '화', '수', '목', '금', '토', '일'],
+    labels: labels || ['월', '화', '수', '목', '금', '토', '일'],
     datasets: [
       {
-        label: '연습 시간 (분)',
-        data: hasData ? [30, 45, 20, 60, 35, 25, 40] : [0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: hasData ? [
+        label: '정확도 (%)',
+        data: chartData || [30, 45, 20, 60, 35, 25, 40],
+        backgroundColor: backgroundColor || [
           'rgba(86, 128, 243, 0.8)',
           'rgba(86, 128, 243, 0.8)',
           'rgba(86, 128, 243, 0.8)',
@@ -34,16 +34,8 @@ const BarChart = ({ title = "루틴 연습 통계", description = "막대를 터
           'rgba(86, 128, 243, 0.8)',
           'rgba(86, 128, 243, 0.8)',
           'rgba(86, 128, 243, 0.8)',
-        ] : [
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
         ],
-        borderColor: hasData ? [
+        borderColor: borderColor || [
           'rgba(86, 128, 243, 1)',
           'rgba(86, 128, 243, 1)',
           'rgba(86, 128, 243, 1)',
@@ -51,14 +43,6 @@ const BarChart = ({ title = "루틴 연습 통계", description = "막대를 터
           'rgba(86, 128, 243, 1)',
           'rgba(86, 128, 243, 1)',
           'rgba(86, 128, 243, 1)',
-        ] : [
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
-          'rgba(0, 0, 0, 0)',
         ],
         borderWidth: 2,
         borderRadius: 8,

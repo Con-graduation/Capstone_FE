@@ -15,6 +15,7 @@ import PracticeStart from "../pages/practice/practiceStart"
 import Practice from "../pages/practice/practice"
 import FeedBack from "../pages/practice/feedBack"
 import RoutineForm from "../pages/routineForm"
+import Interface from "../pages/interface"
 
 export default function Router() {
   return (
@@ -35,6 +36,7 @@ export default function Router() {
       <Route path="/practice" element={<Practice />} />
       <Route path="/practice/feedBack" element={<FeedBack />} />
       <Route path="/routine/form" element={<RoutineForm />} />
+      <Route path="/interface" element={<Interface />} />
     </Routes>
   );
 }
