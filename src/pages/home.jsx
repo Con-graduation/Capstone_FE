@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getRoutine } from "../api/routine";
@@ -9,12 +9,16 @@ import BarChart from "../components/BarChart";
 import googleLogo from "../assets/googleLogo.png";
 import { postGoogleLogin } from "../api/auth";
 import { getGoogleStatus, postGoogleInfo } from "../api/social";
+import { getMainInformation } from "../api/routine";
+
 export default function Home() {
   const navigate = useNavigate();
   const [routines, setRoutines] = useState([]);
   const name = localStorage.getItem("name");
   const [googleStatus, setGoogleStatus] = useState(false);
   const [googleId, setGoogleId] = useState(null);
+  const [streakDays, setStreakDays] = useState(0);
+  const [weeklyPracticeCount, setWeeklyPracticeCount] = useState({});
   
   // 오늘 날짜를 "YYYY년 MM월 DD일" 형식으로 반환
   const getTodayDate = () => {
@@ -25,12 +29,51 @@ export default function Home() {
     return `${year}년 ${month}월 ${day}일`;
   };
 
+  // weeklyPracticeCount를 차트 데이터로 변환
+  const chartData = useMemo(() => {
+    if (!weeklyPracticeCount || Object.keys(weeklyPracticeCount).length === 0) {
+      return {
+        labels: [],
+        data: []
+      };
+    }
+
+    // 날짜 순서대로 정렬
+    const sortedEntries = Object.entries(weeklyPracticeCount).sort((a, b) => {
+      return new Date(a[0]) - new Date(b[0]);
+    });
+
+    // 날짜를 "9일", "10일" 형식으로 변환하고 연습 횟수 추출
+    const labels = sortedEntries.map(([date]) => {
+      const day = new Date(date).getDate();
+      return `${day}일`;
+    });
+
+    const data = sortedEntries.map(([, count]) => count);
+
+    return { labels, data };
+  }, [weeklyPracticeCount]);
+
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) navigate("/");
   }, [navigate]);
 
   useEffect(() => {
+    const fetchMainInformation = async () => {
+      try {
+        const response = await getMainInformation();
+        console.log(response.data);
+        setStreakDays(response.data.streakDays);
+        setWeeklyPracticeCount(response.data.weeklyPracticeCount);
+      } catch (error) {
+        console.error('메인 정보 조회 실패:', error);
+      }
+    };
+    fetchMainInformation();
+
+
+
     const fetchGoogleStatus = async () => {
       try {
         const response = await getGoogleStatus();
@@ -315,7 +358,7 @@ useEffect(() => {
           onClick={() => navigate('/practice/start')}>
             <div className="absolute inset-0 rounded-md bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
             <p className="text-2xl font-bold text-gray-800 relative z-10">연습 시작하기</p>
-            <p className="text-lg text-gray-600 relative z-10">기타 연습 연속 7일째 🔥</p>
+            <p className="text-lg text-gray-600 relative z-10">기타 연습 연속 {streakDays}일째 🔥</p>
             <img src={playIcon} alt="playIcon" className="w-10 h-10 ml-auto relative z-10" />
           </div>
 
@@ -344,7 +387,9 @@ useEffect(() => {
           <div>
           <BarChart 
             title="루틴 연습 통계" 
-            description="막대를 터치해주세요!" 
+            description="막대를 터치해주세요!"
+            labels={chartData.labels}
+            data={chartData.data}
           />
           </div>
 

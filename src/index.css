@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .text-stroke {
+    -webkit-text-stroke: 2px #9ca3af;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .text-stroke-blue {
+    color: #bfdbfe;
+    text-shadow: 
+      -2px -2px 0 #93c5fd,
+      2px -2px 0 #93c5fd,
+      -2px 2px 0 #93c5fd,
+      2px 2px 0 #93c5fd,
+      -2px 0 0 #93c5fd,
+      2px 0 0 #93c5fd,
+      0 -2px 0 #93c5fd,
+      0 2px 0 #93c5fd;
+  }
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -215,4 +235,33 @@ button:focus-visible {
   100% {
     opacity: 1.0;
   }
+}
+
+/* twinkle 애니메이션 - 크기 변화와 회전 */
+@keyframes twinkle {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(0.7) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  75% {
+    transform: scale(0.9) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.twinkle-animation-1 {
+  animation: twinkle 3s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.twinkle-animation-2 {
+  animation: twinkle 3.5s ease-in-out infinite;
+  animation-delay: 1.5s;
 }
