@@ -229,8 +229,8 @@ export default function Join() {
                   </svg>
                 </button>
                 <h2 className="text-center text-2xl font-extrabold text-white">
-                  회원가입
-                </h2>
+                회원가입
+              </h2>
               </div>
               <form onSubmit={handleSubmit}>
               <div className="flex flex-col gap-6 bg-white/50 border-2 border-white/50 p-6 rounded-lg shadow-xl">
