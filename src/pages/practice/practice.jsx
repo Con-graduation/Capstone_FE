@@ -403,17 +403,17 @@ useEffect(() => {
     <div className="flex flex-col items-center justify-center w-full h-full">
 
    
-      <h1 className="text-4xl font-bold text-gray-800">
+      <h1 className="text-2xl font-bold text-gray-800">
         {routineData.title || 'Practice'}
       </h1>
       
-      <div className="text-2xl font-bold text-gray-800">
+      <div className="text-lg font-bold text-gray-800">
         현재 코드: {currentCode}
       </div>
   
             {routineData.repeats && (
               <div className="mb-4">
-                <p className="text-xl">{Math.floor(currentSequenceIndex / (routineData.sequence?.length || 1)) + 1}/{routineData.repeats}회 시행</p>
+                <p className="text-sm">{Math.floor(currentSequenceIndex / (routineData.sequence?.length || 1)) + 1}/{routineData.repeats}회 시행</p>
               </div>
             )}
   
