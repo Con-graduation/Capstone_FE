@@ -1,7 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function useMicVolume() {
-  const [volume, setVolume] = useState(0.5); // 초기 볼륨
+  // localStorage에서 초기 볼륨 불러오기
+  const getInitialVolume = () => {
+    const savedVolume = localStorage.getItem('micVolume');
+    if (savedVolume) {
+      const volumeValue = parseFloat(savedVolume);
+      if (!isNaN(volumeValue) && volumeValue >= 0.5 && volumeValue <= 3) {
+        return volumeValue;
+      }
+    }
+    return 0.5; // 기본값
+  };
+
+  const [volume, setVolume] = useState(getInitialVolume);
   const [selectedDeviceId, setSelectedDeviceId] = useState(null);
 
   const audioStreamRef = useRef(null);
