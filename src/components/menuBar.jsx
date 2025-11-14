@@ -23,8 +23,8 @@ export default function MenuBar() {
   return (
     <div className="sticky bottom-0 z-50 w-full h-16 bg-white shadow-md px-4 flex items-center justify-center border-t border-gray-200">
       <div className="flex items-center gap-4 justify-between w-full relative">
-        <button className="absolute right-0 bottom-16 rounded-full bg-blue-400 text-white w-10 h-10 flex items-center justify-center shadow-md text-md font-bold" onClick={() => navigate('/interface')}>
-         AI
+        <button className="absolute right-0 bottom-16 rounded-full bg-blue-400 text-white h-10 flex items-center justify-center shadow-md text-sm font-semibold" onClick={() => navigate('/interface')}>
+         AI 질문하기 💬
         </button>
         <img src={menu1Icon} alt="menu1" className="w-8 h-8 cursor-pointer" 
         onClick={() => navigate(path[0])}/>

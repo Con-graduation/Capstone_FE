@@ -2,6 +2,7 @@ import { postPrompt } from "../api/mcp";
 import { useState, useEffect, useRef } from "react";
 import { getGoogleStatus, getGoogleToken } from "../api/social";
 import ReactMarkdown from "react-markdown";
+import GoogleConnectButton from "../components/googleConnectButton";
 
 export default function Interface() {
     const [prompt, setPrompt] = useState("");
@@ -90,10 +91,12 @@ export default function Interface() {
 
             const result = await response.json();
             console.log("캘린더 이벤트 추가 결과:", result);
-            alert("✅ 구글 캘린더에 일정이 추가되었습니다!");
+            return true; // 성공 시 true 반환
         } catch (error) {
             console.error("캘린더 이벤트 추가 실패:", error);
-            alert(`구글 캘린더에 일정 추가 중 오류가 발생했습니다: ${error.message}`);
+            // Axios 에러인 경우 (getGoogleToken 등에서 발생)
+            const errorMessage = error.response?.data?.error || error.response?.data?.data?.error || error.message || '구글 캘린더에 일정 추가 중 오류가 발생했습니다.';
+            throw new Error(errorMessage);
         }
     }
     
@@ -133,7 +136,19 @@ export default function Interface() {
                         }
                     };
                     
-                    await addEventToGoogleCalendar(eventData);
+                    try {
+                        const success = await addEventToGoogleCalendar(eventData);
+                        if (success) {
+                            // 답변 영역에 메시지 표시
+                            setQuestion(prompt);
+                            setResponse("구글 캘린더에 일정이 추가되었습니다. 지금 바로 캘린더를 확인해보세요!\n\n[캘린더 바로가기](https://calendar.google.com/calendar/u/0/r)");
+                            setDisplayedText("");
+                            setHasResponse(true);
+                            setIsTyping(true); // 타이핑 효과 시작
+                        }
+                    } catch (error) {
+                        alert(error.message || "캘린더 이벤트 추가에 실패했습니다.");
+                    }
                 } else {
                     alert("캘린더 이벤트 데이터가 올바르지 않습니다.");
                 }
@@ -148,7 +163,7 @@ export default function Interface() {
             
             // 400 에러 처리
             if (error.response && error.response.status === 400) {
-                const errorMessage = error.response?.data?.data?.error || '잘못된 요청입니다.';
+                const errorMessage = error.response?.data?.error || error.response?.data?.data?.error || '잘못된 요청입니다.';
                 alert(errorMessage);
             } else {
                 alert('답변 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -193,6 +208,8 @@ export default function Interface() {
                 <code className="block bg-gray-100 p-2 rounded text-sm font-mono my-2" {...props} />
             ),
         pre: ({node, ...props}) => <pre className="bg-gray-100 p-2 rounded my-2 overflow-x-auto" {...props} />,
+        // 링크 스타일
+        a: ({node, ...props}) => <a className="text-blue-500 hover:text-blue-700 underline" target="_blank" rel="noopener noreferrer" {...props} />,
     };
 
     return (
@@ -216,6 +233,7 @@ export default function Interface() {
                     >
                        전송하기
                     </button>
+                    <GoogleConnectButton />
                     {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 px-10 max-w-sm mx-4">
