@@ -13,6 +13,15 @@ export default function Home() {
   const navigate = useNavigate();
   const [routines, setRoutines] = useState([]);
   const name = localStorage.getItem("name");
+  
+  // 오늘 날짜를 "YYYY년 MM월 DD일" 형식으로 반환
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}년 ${month}월 ${day}일`;
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
@@ -259,7 +268,7 @@ useEffect(() => {
             <div className="text-2xl font-bold">{name}님</div>
             <div className="flex items-center justify-between">
               <span className="text-2xl font-bold">환영합니다! 👋</span>
-              <span className="text-lg font-regular">📅 2025년 09월 29일</span>
+              <span className="text-lg font-regular">📅 {getTodayDate()}</span>
             </div>
           </div>
           

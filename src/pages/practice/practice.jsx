@@ -213,6 +213,7 @@ export default function Practice() {
               
             } catch (error) {
               console.error('녹음 데이터 전송 실패:', error);
+              console.log(webmBlob)
               setIsLoading(false);
               alert('데이터 전송에 실패했습니다.');
             }
@@ -373,14 +374,14 @@ export default function Practice() {
           setIsPaused(true);
           setShowModal(true);
         }}
-        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        className="p-0 hover:bg-gray-100 rounded-full transition-colors"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-8 h-8">
           <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
         </svg>
       </button>
     </div>
-    <div className="flex flex-col items-center justify-center gap-4 w-full h-full">
+    <div className="flex flex-col items-center justify-center w-full h-full">
 
    
       <h1 className="text-4xl font-bold text-gray-800">
@@ -397,13 +398,14 @@ export default function Practice() {
               </div>
             )}
   
-            <div className="relative w-20 h-20 bg-gray-300 rounded-full my-10">
+            <div className="relative w-20 h-20 bg-gray-300 rounded-full my-10 flex items-center justify-center">
                 
               <div 
-                className="absolute w-full h-full bg-blue-300 rounded-full transition-all duration-75"
+                className="absolute w-24 h-24 bg-blue-300 opacity-80 rounded-full transition-all duration-75"
                 style={{
                   transform: `scale(${1 + Math.min(volume / 100, 1.5)})`,
-                  backgroundColor: volume > 0 ? '#3b82f6' : '#9ca3af'
+                  backgroundColor: volume > 0 ? '#3b82f6' : '#9ca3af',
+                  aspectRatio: '1 / 1'
                 }}
               ></div>
               <div className="absolute w-full h-full flex items-center justify-center z-10">
