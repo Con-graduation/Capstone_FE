@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import AlbumBox from '../../components/albumBox';
 import album1 from '../../assets/albumCover/album1.jpeg';
 import album2 from '../../assets/albumCover/album2.jpeg';
@@ -12,6 +13,9 @@ import updateIcon from '../../assets/updateIcon.svg';
 import DropDown from '../../components/dropDown';
 
 export default function RecommendResult() {
+    const location = useLocation();
+    const genre = location.state?.genre || '';
+    const nickname = localStorage.getItem("nickname");
     const albumList = [
         {
             id: 1,
@@ -95,8 +99,14 @@ export default function RecommendResult() {
     };
 
     return (
-        <div className="min-h-screen w-screen bg-[#EEF5FF] flex flex-col gap-4 pt-10 items-center">
+        <div className="min-h-screen w-screen bg-[#EEF5FF] flex flex-col gap-4 pt-10 items-center px-8">
             <h1 className="text-2xl font-bold">맞춤 곡 추천</h1>
+            <div className="w-full mt-8 bg-white rounded-lg shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)] border border-stone-300 flex flex-col items-center justify-center p-6">
+            <h2 className="text-xl font-semibold text-center">AI가 <span className="font-bold text-blue-600">{nickname}</span>님의 취향에 맞는<br/> 곡을 분석했어요! ☺️</h2>
+                <p className="text-md font-regular text-center mt-4">{nickname}님은 <span className="font-bold text-blue-600">120BPM</span>에서 <br/>가장 높은 정확도를 연주했어요!</p>
+                {genre && <p className="text-md font-regular text-center mt-2"><span className="font-bold text-blue-600">"120BPM의 {genre} 장르"</span> 곡을 추천해드릴게요!</p>}
+                </div>
+           
             {randomAlbums.map((album) => (
                 <AlbumBox 
                     key={album.id}
@@ -115,60 +125,7 @@ export default function RecommendResult() {
                 />
             </div>
 
-             <div className="flex flex-col items-center max-w-96 mt-10 pb-24">
-                <div className="flex flex-col items-center mb-8">
-                <h1 className="text-2xl font-bold">곡 추천 수동 설정</h1>
-                 <p className="text-sm font-light mt-4">원하는 코드와 BPM을</p>
-                 <p className="text-sm font-light">선택해주세요!</p>
-                </div>
-                
-                 <div className="flex gap-4 w-64 mx-auto">
-                 <DropDown 
-                         title="코드" 
-                         options={['C', 'D', 'E', 'F', 'G', 'A', 'B']}
-                         selectedValue={selectedCode}
-                         onSelect={setSelectedCode}
-                     />
-                     <DropDown 
-                         title="BPM" 
-                         options={['60', '70', '80', '90', '100', '110', '120', '130', '140', '150']}
-                         selectedValue={selectedBPM}
-                         onSelect={setSelectedBPM}
-                     />
-                    
-                 </div>
-                 <button 
-                     className="w-72 bg-blue-500 text-white rounded-md px-4 py-1 mt-8 mx-auto"
-                     onClick={handleManualRecommend}
-                 >
-                     선택한 설정으로 곡 추천 받기
-                 </button>
-                 {showWarning && (
-                     <p className="text-sm font-light mt-2 text-center text-red-500">
-                         곡 설정을 완료해주세요!
-                     </p>
-                 )}
-                 
-                 {manualAlbums.length > 0 && (
-                     <div className="mt-10">
-                         <h2 className="text-xl font-bold text-center mb-4">
-                             {selectedCode}코드 & {selectedBPM}BPM 추천 곡
-                         </h2>
-                         <div className="flex flex-col gap-4">
-                             {manualAlbums.map((album) => (
-                                 <AlbumBox 
-                                     key={`manual-${album.id}`}
-                                     Img={album.image}
-                                     title={album.title}
-                                     artist={album.artist}
-                                 />
-                             ))}
-                         </div>
-                     </div>
-                 )}
-
-             </div>
-          
+            
         </div>
     )
 }
