@@ -50,6 +50,17 @@ export default function Practice() {
       {fret: "2", line: lineList[3], color: colorchip[1]},
       {fret: "2", line: lineList[4], color: colorchip[2]},
     ],
+    "F": [
+      {fret: "1", line: lineList[0], color: colorchip[0]},
+      {fret: "1", line: lineList[1], color: colorchip[0]},
+      {fret: "1", line: lineList[2], color: colorchip[0]},
+      {fret: "1", line: lineList[3], color: colorchip[0]},
+      {fret: "1", line: lineList[4], color: colorchip[0]},
+      {fret: "1", line: lineList[5], color: colorchip[0]},
+      {fret: "2", line: lineList[4], color: colorchip[1]},
+      {fret: "3", line: lineList[2], color: colorchip[2]},
+      {fret: "4", line: lineList[3], color: colorchip[3]},
+    ],
     "Am":[
       {fret: "1", line: lineList[5], color: colorchip[0]},
       {fret: "2", line: lineList[2], color: colorchip[1]},
@@ -60,11 +71,58 @@ export default function Practice() {
       {fret: "2", line: lineList[2], color: colorchip[1]},
     ]
    }
+
+   // 코드별 X, O 표시 정보 (위치와 텍스트)
+   // lineList: ["8.5%", "25.5%", "42%", "59%", "75%", "92%"] (6개 줄)
+   const codeMarkers = {
+    "C": [
+      { text: "X", position: "8.5%" },
+      { text: "O", position: "59%" },
+      { text: "O", position: "92%" },
+    ],
+    "D": [
+      { text: "X", position: "8.5%" },
+      { text: "X", position: "25.5%" },
+      { text: "O", position: "42%" },
+    ],
+    "E": [
+      { text: "O", position: "8.5%" },
+      { text: "O", position: "75%" },
+      { text: "O", position: "92%" },
+    ],
+    "F": [
+      
+    ],
+    "G": [
+      { text: "O", position: "42%" },
+      { text: "O", position: "59%" },
+      { text: "C", position: "79%" },
+    ],
+    "A": [
+      { text: "X", position: "8.5%" },
+      { text: "O", position: "25.5%" },
+      { text: "O", position: "92%" },
+    ],
+    "Am": [
+      { text: "X", position: "8.5%" },
+      { text: "O", position: "25.5%" },
+      { text: "X", position: "92%" },
+    ],
+    "Em": [
+      { text: "O", position: "8.5%" },
+      { text: "O", position: "59%" },
+      { text: "O", position: "79%" },
+      { text: "O", position: "92%" },
+    ],
+   }
     
     // C 코드의 가이드 점을 그리기 위한 함수
     const renderCodeGuides = (codeName, sequenceIndex, bpm = 60, isPlaying = true) => {
       const code = codeLocation[codeName];
-      if (!code) return null;
+      if (!code) {
+        // code가 없으면 빈 배열 6개 반환
+        return [[], [], [], [], [], []];
+      }
       
       const columns = [[], [], [], [], [], []]; // 6개 열
       
@@ -95,7 +153,10 @@ export default function Practice() {
     
     // 크로매틱 연습용 점 렌더링 함수
     const renderChromaticGuides = (fingerSequence, chromaticIndex, bpm = 60, isPlaying = true) => {
-      if (!fingerSequence || fingerSequence.length === 0) return null;
+      if (!fingerSequence || fingerSequence.length === 0) {
+        // fingerSequence가 없으면 빈 배열 6개 반환
+        return [[], [], [], [], [], []];
+      }
       
       const actualRows = 6; // 실제 행은 6개로 고정
       const stepsPerCycle = fingerSequence.length * actualRows;
@@ -103,7 +164,10 @@ export default function Practice() {
       const stepsPerRepeat = stepsPerCycle * cyclesPerRepeat;
       const totalSteps = stepsPerRepeat * (routineData.repeats || 0);
       
-      if (chromaticIndex >= totalSteps) return null;
+      if (chromaticIndex >= totalSteps) {
+        // totalSteps를 초과하면 빈 배열 6개 반환
+        return [[], [], [], [], [], []];
+      }
       
       // 현재 사이클 번호 계산 (0부터 시작, 전체 사이클)
       const totalCycle = Math.floor(chromaticIndex / stepsPerCycle);
@@ -571,10 +635,25 @@ useEffect(() => {
           {renderCodeGuides(currentCode, currentSequenceIndex, routineData?.bpm || 60, !isCompleted)[index]}
         </div>
       ))}
-      <div className="h-full py-12 flex flex-col justify-between ml-2">
-        <p className="text-2xl font-bold">X</p>
-        <p className="text-2xl font-bold mt-36">O</p>
-        <p className="text-2xl font-bold">O</p>
+      <div className="h-full relative ml-2">
+        {codeMarkers[currentCode] && codeMarkers[currentCode].length > 0 ? (
+          codeMarkers[currentCode].map((marker, idx) => (
+            <p 
+              key={idx} 
+              className="text-2xl font-bold absolute"
+              style={{ top: marker.position, transform: 'translateY(-50%)' }}
+            >
+              {marker.text}
+            </p>
+          ))
+        ) : codeMarkers[currentCode] === undefined ? (
+          // 기본값 (코드가 없을 때)
+          <>
+            <p className="text-2xl font-bold absolute" style={{ top: "8.5%", transform: 'translateY(-50%)' }}>X</p>
+            <p className="text-2xl font-bold absolute" style={{ top: "42%", transform: 'translateY(-50%)' }}>O</p>
+            <p className="text-2xl font-bold absolute" style={{ top: "92%", transform: 'translateY(-50%)' }}>O</p>
+          </>
+        ) : null}
       </div>
     </>
   )}
