@@ -14,7 +14,7 @@ import { getMainInformation } from "../api/routine";
 export default function Home() {
   const navigate = useNavigate();
   const [routines, setRoutines] = useState([]);
-  const name = localStorage.getItem("name");
+  const nickname = localStorage.getItem("nickname");
   const [googleStatus, setGoogleStatus] = useState(false);
   const [googleId, setGoogleId] = useState(null);
   const [streakDays, setStreakDays] = useState(0);
@@ -347,7 +347,7 @@ useEffect(() => {
       <div className="min-h-screen w-screen bg-[#EEF5FF] pb-24">
         <div className="px-6 pt-8 flex flex-col gap-12">
           <div className="flex flex-col gap-2">
-            <div className="text-2xl font-bold">{name}님</div>
+            <div className="text-2xl font-bold">{nickname}님</div>
             <div className="flex items-center justify-between">
               <span className="text-2xl font-bold">환영합니다! 👋</span>
               <span className="text-lg font-regular">📅 {getTodayDate()}</span>
@@ -390,6 +390,7 @@ useEffect(() => {
             description="막대를 터치해주세요!"
             labels={chartData.labels}
             data={chartData.data}
+            unit="횟수"
           />
           </div>
 

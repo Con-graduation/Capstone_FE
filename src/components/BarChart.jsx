@@ -19,12 +19,12 @@ ChartJS.register(
   Legend
 );
 
-const BarChart = ({ title = "루틴 연습 통계", description = "막대를 터치해주세요!", labels, data: chartData, backgroundColor, borderColor }) => {
+const BarChart = ({ title = "루틴 연습 통계", description = "막대를 터치해주세요!", labels, data: chartData, backgroundColor, borderColor, unit = "정확도 (%)" }) => {
   const data = {
     labels: labels || ['월', '화', '수', '목', '금', '토', '일'],
     datasets: [
       {
-        label: '정확도 (%)',
+        label: unit,
         data: chartData || [30, 45, 20, 60, 35, 25, 40],
         backgroundColor: backgroundColor || [
           'rgba(86, 128, 243, 0.8)',

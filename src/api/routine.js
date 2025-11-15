@@ -21,7 +21,3 @@ export const getMainInformation = async () => {
   return response;
 };
 
-export const getMystats = async () => {
-  const response = await client.get(`/api/profile/mystats`);
-  return response;
-};
