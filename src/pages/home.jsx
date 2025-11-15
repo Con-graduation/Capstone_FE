@@ -390,6 +390,7 @@ useEffect(() => {
             description="막대를 터치해주세요!"
             labels={chartData.labels}
             data={chartData.data}
+            unit="횟수"
           />
           </div>
 

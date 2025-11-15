@@ -107,11 +107,8 @@ export default function Practice() {
       
       // 현재 사이클 번호 계산 (0부터 시작, 전체 사이클)
       const totalCycle = Math.floor(chromaticIndex / stepsPerCycle);
-      // 현재 반복 내의 사이클 번호 (0~8)
       const cycleInRepeat = totalCycle % cyclesPerRepeat;
-      // 현재 사이클 내 위치 (0 ~ stepsPerCycle-1)
       const positionInCycle = chromaticIndex % stepsPerCycle;
-      // 현재 행: 사이클 내 위치를 fingerSequence.length로 나눈 몫
       const rowInCycle = Math.floor(positionInCycle / fingerSequence.length);
       
       // 홀수 사이클(1, 3, 5...): 위로 (마지막 행부터 첫 행까지)
@@ -121,41 +118,24 @@ export default function Practice() {
       
       // 현재 손가락 순서 인덱스: chromaticIndex를 fingerSequence.length로 나눈 나머지
       const fingerIndex = chromaticIndex % fingerSequence.length;
-      // 기본 열 번호 매핑: fret 1 = 열 6 (index 5), fret 2 = 열 5 (index 4), ..., fret 6 = 열 1 (index 0)
-      let baseColumnNumber = 6 - parseInt(fingerSequence[fingerIndex]); // 열 번호 (0~5, 손가락 1~6)
+      // 손가락 순서의 fret 값을 가져와서 열 번호로 변환
+      // 오른쪽 열이 1번이므로 역순으로 매핑: fret 1 = 열 5 (오른쪽 첫 번째, 1열), fret 2 = 열 4 (2열), fret 3 = 열 3 (3열), fret 4 = 열 2 (4열)
+      const fretNumber = parseInt(fingerSequence[fingerIndex]);
+      const columnNumber = 6 - fretNumber; // fret 1~6을 열 5~0으로 역순 변환
       
-      // 사이클 0~6: 숫자 1~6, 2~7, 3~8, 4~9, 5~10, 6~11, 7~12
-      // 사이클 7: 숫자 7~12 고정, 가이드 점 이동(8~11열중 손가락 순서대로)
-      // 사이클 8: 숫자 7~12 고정, 가이드 점 이동(9~12열중 손가락 순서대로)
-      // 사이클 9: 리셋 (다시 사이클 0부터)
-      if (cycleInRepeat === 7) {
-        // 사이클 7: 8~11열 (원래 6~9열에서 +2)
-        const columnOffset = 2;
-        baseColumnNumber = baseColumnNumber - columnOffset;
-        if (baseColumnNumber < 0) {
-          baseColumnNumber = 0;
-        }
-      } else if (cycleInRepeat === 8) {
-        // 사이클 8: 9~12열 (원래 6~9열에서 +3)
-        const columnOffset = 3;
-        baseColumnNumber = baseColumnNumber - columnOffset;
-        if (baseColumnNumber < 0) {
-          baseColumnNumber = 0;
-        }
-      }
+      // 컬러는 열 번호에 따라 고정: 1열(열 5) = colorchip[0], 2열(열 4) = colorchip[1], 3열(열 3) = colorchip[2], 4열(열 2) = colorchip[3]
+      const colorIndex = 5 - columnNumber; // 열 5 → 0, 열 4 → 1, 열 3 → 2, 열 2 → 3
       
-      const columnNumber = baseColumnNumber;
+      const columns = [[], [], [], [], [], []]; // 6개 열 (UI는 6개 열로 유지)
       
-      // 컬러는 열 번호에 따라 결정: 1열(colorchip[0]), 2열(colorchip[1]), 3열(colorchip[2]), 4열(colorchip[3]) 순서로 반복
-      const colorIndex = (5 - columnNumber) % colorchip.length;
-      
-      const columns = [[], [], [], [], [], []]; // 6개 열
-      
-      if (columnNumber >= 0 && columnNumber < 6 && currentRow >= 0 && currentRow < 6) {
+      // 가이드 점은 항상 1~4열에만 표시 (열 5, 4, 3, 2 = fret 1, 2, 3, 4)
+      // 열 5 = 1열, 열 4 = 2열, 열 3 = 3열, 열 2 = 4열
+      // 사이클 7, 8에서도 가이드 점은 1~4열에 고정 (숫자만 8~14로 변경)
+      if (columnNumber >= 2 && columnNumber <= 5 && currentRow >= 0 && currentRow < 6) {
         columns[columnNumber].push({
           row: currentRow,
           top: lineList[currentRow],
-          color: colorchip[colorIndex]
+          color: colorchip[colorIndex % colorchip.length]
         });
       }
       
@@ -485,15 +465,14 @@ useEffect(() => {
   
   return (
       <div className="fixed inset-0 bg-[#EEF5FF] overflow-hidden w-screen h-screen">
-       <div className="absolute top-1/2 left-1/2 h-screen w-screen -rotate-90 transform -translate-x-1/2 -translate-y-1/2 origin-center flex"
+       <div className="absolute top-1/2 left-1/2 h-screen w-screen -rotate-90 transform -translate-x-1/2 -translate-y-1/2 origin-center flex justify-center gap-8"
        style={{ width: '100vh', height: '100vw' }}>
-        <div className="flex flex-col items-center justify-center">
-            <div className="flex mt-4 w-full text-center pl-4">
+        <div className="flex flex-col items-center justify-center ml-4" style={{ width: '60%', flexShrink: 0 }}>
+            <div className="flex mt-4 text-center pl-4 w-full">
               {routineData?.routineType === 'CHROMATIC' ? (
-                // 크로매틱: 사이클에 따라 동적으로 변경 (1~6, 2~7, 3~8... 최대 7~12)
+                // 크로매틱: 사이클에 따라 동적으로 변경 (1~12, 공간은 6개로 고정)
                 (() => {
                   const actualRows = 6; // 실제 행은 6개로 고정
-                  const maxColumns = 12; // 열은 12개까지
                   const fingerSequence = routineData?.sequence || [];
                   if (fingerSequence.length === 0) {
                     return [...Array(6)].map((_, i) => (
@@ -509,14 +488,19 @@ useEffect(() => {
                   const cycleInRepeat = totalCycle % cyclesPerRepeat;
                   
                   // 방향이 바뀔 때마다 숫자 증가 (사이클이 바뀔 때마다)
-                  // 사이클 0~6: 숫자 1~6, 2~7, 3~8, 4~9, 5~10, 6~11, 7~12
-                  // 사이클 7~8: 숫자 7~12 고정
-                  const maxCycle = 6; // 마지막 열이 12가 되는 사이클
-                  const cycle = Math.min(cycleInRepeat, maxCycle);
-                  const startNumber = cycle + 1; // 사이클 0: 1, 사이클 1: 2, ..., 사이클 6: 7 (사이클 7~8도 7~12)
+                  let startNumber;
+                  if (cycleInRepeat <= 6) {
+                    startNumber = cycleInRepeat + 1;
+                  } else if (cycleInRepeat === 7) {
+                    startNumber = 8; 
+                  } else {
+                    startNumber = 9;
+                  }
+                  
+                  // 6개 열로 고정, 숫자만 동적으로 변경
                   return [...Array(6)].map((_, i) => {
                     const number = startNumber + (5 - i);
-                    return <p key={i} className="text-2xl font-bold w-24">{number}</p>;
+                    return <p key={i} className="text-2xl font-bold w-24">{number <= 14 ? number : ''}</p>;
                   });
                 })()
               ) : (
@@ -531,11 +515,14 @@ useEffect(() => {
                 </>
               )}
             </div>
-            <div className="m-4 flex rounded-lg h-full">
+            <div className="m-4 flex rounded-lg h-full w-full">
    
 
-  {[...Array(6)].map((_, index) => (
-    <div
+  {routineData?.routineType === 'CHROMATIC' ? (
+    [...Array(6)].map((_, index) => {
+     
+        return (
+          <div
       key={`fret-${index}-${routineData?.routineType === 'CHROMATIC' ? chromaticIndex : currentCode}-${routineData?.routineType === 'CHROMATIC' ? chromaticIndex : currentSequenceIndex}`}
       className={`relative w-24 h-full bg-[#DBBEA2] overflow-visible ${
         index === 0 ? 'border-r border-black rounded-l-lg' : 
@@ -543,7 +530,7 @@ useEffect(() => {
         'border-x border-black'
       }`}
     >
-      {/* 항상 6개 행 */}
+             {/* 항상 6개 행 */}
       {[...Array(7)].map((_, i) => (
         <div
           key={i}
@@ -557,14 +544,40 @@ useEffect(() => {
         : renderCodeGuides(currentCode, currentSequenceIndex, routineData?.bpm || 60, !isCompleted)[index]
       }
     </div>
-  ))}
-  {routineData?.routineType === 'CODE' ? (
-          <div className="h-full py-12 flex flex-col justify-between ml-2">
-            <p className="text-2xl font-bold">X</p>
-            <p className="text-2xl font-bold mt-36">O</p>
-            <p className="text-2xl font-bold">O</p>
-           </div>
-           ) : (<></>)}
+        );
+      }
+    )
+  ) : (
+    // 코드 전환: 6개 열
+    <>
+      {[...Array(6)].map((_, index) => (
+        <div
+          key={`fret-${index}-${currentCode}-${currentSequenceIndex}`}
+          className={`relative w-24 h-full bg-[#DBBEA2] overflow-visible ${
+            index === 0 ? 'border-r border-black rounded-l-lg' : 
+            index === 5 ? 'border-l border-black rounded-r-lg' : 
+            'border-x border-black'
+          }`}
+        >
+          {/* 항상 6개 행 */}
+          {[...Array(7)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute left-0 w-full border-t border-black"
+              style={{ top: `${(i + 1) * (100 / 6) - 8}%` }}
+            />
+          ))}
+          {/* 가이드 점 */}
+          {renderCodeGuides(currentCode, currentSequenceIndex, routineData?.bpm || 60, !isCompleted)[index]}
+        </div>
+      ))}
+      <div className="h-full py-12 flex flex-col justify-between ml-2">
+        <p className="text-2xl font-bold">X</p>
+        <p className="text-2xl font-bold mt-36">O</p>
+        <p className="text-2xl font-bold">O</p>
+      </div>
+    </>
+  )}
            </div>
           
         </div>
