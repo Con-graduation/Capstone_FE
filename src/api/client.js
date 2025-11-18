@@ -41,8 +41,9 @@ client.interceptors.response.use(
       if (error.response?.status === 401) {
         console.error("❌ 인증 실패 (401): 토큰이 만료되었거나 유효하지 않음");
         // 필요시 로그아웃 처리
-        // localStorage.removeItem('accessToken');
-        // window.location.href = '/login';
+        localStorage.removeItem('accessToken');
+        alert('재로그인이 필요합니다.');
+        window.location.href = '/';
       }
       return Promise.reject(error);
     }
