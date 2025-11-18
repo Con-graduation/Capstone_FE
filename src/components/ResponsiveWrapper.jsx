@@ -9,7 +9,7 @@ const ResponsiveWrapper = ({ children, desktopTitle = "데스크톱 전용 페�
 
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth <= 1920);
     };
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
