@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAudioAnalyzer from '../../hooks/useAudioAnalyzer';
 import handIcon from '../../assets/hand.png';
@@ -96,7 +96,7 @@ export default function Practice() {
     "G": [
       { text: "O", position: "42%" },
       { text: "O", position: "59%" },
-      { text: "C", position: "79%" },
+      { text: "X", position: "79%" },
     ],
     "A": [
       { text: "X", position: "8.5%" },
@@ -229,6 +229,32 @@ export default function Practice() {
     
     // useAudioAnalyzer로 볼륨 측정 (일시정지 중일 때는 null을 전달)
     const volume = useAudioAnalyzer(isPaused ? null : userMediaStream, gainValue);
+    
+    // 효과음 재생 함수 (fadePulse 50% 지점에서 재생)
+    const playBeatSound = useCallback(() => {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // 800Hz 톤, 짧은 비프음
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        // 페이드 인/아웃으로 자연스러운 소리
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.1);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (error) {
+        console.error('효과음 재생 실패:', error);
+      }
+    }, []);
     
     async function convertWebMToWav(webmBlob) {
       const arrayBuffer = await webmBlob.arrayBuffer();
@@ -412,6 +438,8 @@ useEffect(() => {
       
       // 1 beat = 60 / BPM 초
       const intervalMs = (60 / routineData.bpm) * 1000;
+      // 애니메이션 50% 지점 (fadePulse가 opacity 0.5가 되는 시점)
+      const halfBeatMs = intervalMs / 2;
       
       const timer = setInterval(() => {
         setChromaticIndex(prev => {
@@ -424,8 +452,26 @@ useEffect(() => {
         });
       }, intervalMs);
       
-      return () => clearInterval(timer);
-    }, [routineData, userMediaStream, isPaused]);
+      // 효과음 재생 타이머 (각 beat의 50% 지점에서 재생)
+      const soundTimer = setInterval(() => {
+        if (!isPaused) {
+          playBeatSound();
+        }
+      }, intervalMs);
+      
+      // 첫 효과음은 반 beat 후 재생 (첫 애니메이션의 50% 지점)
+      const firstSoundTimeout = setTimeout(() => {
+        if (!isPaused) {
+          playBeatSound();
+        }
+      }, halfBeatMs);
+      
+      return () => {
+        clearInterval(timer);
+        clearInterval(soundTimer);
+        clearTimeout(firstSoundTimeout);
+      };
+    }, [routineData, userMediaStream, isPaused, playBeatSound]);
     
     // BPM 기반 인터벌로 시퀀스 인덱스 증가하는 타이머 (코드 전환용)
     useEffect(() => {
@@ -435,7 +481,11 @@ useEffect(() => {
       
       const beatsPerCode = 4; // 각 코드마다 4번 반복
       // 1 beat = BPM/60 초, 4 beats = 4 * (BPM/60) 초
-      const intervalMs = (4 * (60 / routineData.bpm)) * 1000;
+      const codeIntervalMs = (4 * (60 / routineData.bpm)) * 1000;
+      // 1 beat의 길이 (효과음 재생용)
+      const beatMs = (60 / routineData.bpm) * 1000;
+      // 애니메이션 50% 지점 (fadePulse가 opacity 0.5가 되는 시점)
+      const halfBeatMs = beatMs / 2;
       const totalBeats = routineData.repeats * routineData.sequence.length;
       
       const timer = setInterval(() => {
@@ -446,10 +496,29 @@ useEffect(() => {
           }
           return prev + 1;
         });
-      }, intervalMs);
+      }, codeIntervalMs);
       
-      return () => clearInterval(timer);
-    }, [routineData, userMediaStream, isPaused]);
+      // 효과음 재생 타이머 (각 beat의 50% 지점에서 재생)
+      // 코드 전환은 4 beats마다 발생하므로, 각 beat마다 효과음 재생
+      const soundTimer = setInterval(() => {
+        if (!isPaused) {
+          playBeatSound();
+        }
+      }, beatMs);
+      
+      // 첫 효과음은 반 beat 후 재생 (첫 애니메이션의 50% 지점)
+      const firstSoundTimeout = setTimeout(() => {
+        if (!isPaused) {
+          playBeatSound();
+        }
+      }, halfBeatMs);
+      
+      return () => {
+        clearInterval(timer);
+        clearInterval(soundTimer);
+        clearTimeout(firstSoundTimeout);
+      };
+    }, [routineData, userMediaStream, isPaused, playBeatSound]);
     
     // 현재 코드 계산
     const currentCode = routineData?.sequence 
