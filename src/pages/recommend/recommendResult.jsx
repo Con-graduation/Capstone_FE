@@ -72,8 +72,8 @@ export default function RecommendResult() {
     };
     
     const albumList = getAlbumList();
-    console.log('Response Data:', responseData);
-    console.log('Album List:', albumList);
+    // console.log('Response Data:', responseData);
+    // console.log('Album List:', albumList);
    
 
     return (
