@@ -728,8 +728,9 @@ export default function Accordion({ title, type, value, onValueChange, routineTy
             <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">반복할 횟수를 선택하세요.</label>
+                {propRoutineType === '크로매틱 연습' && (
                 <div className="flex flex-wrap gap-4 justify-center mb-4">
-                  {[5, 10, 20].map((count) => (
+                  {[1, 2,3].map((count) => (
                     <button
                       key={count}
                       onClick={() => selectRepeatCount(count.toString())}
@@ -743,6 +744,24 @@ export default function Accordion({ title, type, value, onValueChange, routineTy
                     </button>
                   ))}
                 </div>
+                )}
+                {propRoutineType === '코드 전환' && (
+                <div className="flex flex-wrap gap-4 justify-center mb-4">
+                  {[5, 10, 20].map((count) => (
+                    <button
+                      key={count}
+                      onClick={() => selectRepeatCount(count.toString())}
+                      className={`w-12 h-12 rounded-full transition-colors duration-200 px-2 py-1 ${
+                        selectedRepeatCount === count.toString()
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'bg-blue-200 text-gray-700 hover:bg-blue-300'
+                      }`}
+                    >
+                      {count}
+                    </button>
+                  ))}
+                </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <button 

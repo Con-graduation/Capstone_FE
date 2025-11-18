@@ -20,7 +20,6 @@ export default function Home() {
   const [streakDays, setStreakDays] = useState(0);
   const [weeklyPracticeCount, setWeeklyPracticeCount] = useState({});
   
-  // 오늘 날짜를 "YYYY년 MM월 DD일" 형식으로 반환
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -29,7 +28,6 @@ export default function Home() {
     return `${year}년 ${month}월 ${day}일`;
   };
 
-  // weeklyPracticeCount를 차트 데이터로 변환
   const chartData = useMemo(() => {
     if (!weeklyPracticeCount || Object.keys(weeklyPracticeCount).length === 0) {
       return {
@@ -38,12 +36,10 @@ export default function Home() {
       };
     }
 
-    // 날짜 순서대로 정렬
     const sortedEntries = Object.entries(weeklyPracticeCount).sort((a, b) => {
       return new Date(a[0]) - new Date(b[0]);
     });
 
-    // 날짜를 "9일", "10일" 형식으로 변환하고 연습 횟수 추출
     const labels = sortedEntries.map(([date]) => {
       const day = new Date(date).getDate();
       return `${day}일`;
@@ -63,7 +59,6 @@ export default function Home() {
     const fetchMainInformation = async () => {
       try {
         const response = await getMainInformation();
-        console.log(response.data);
         setStreakDays(response.data.streakDays);
         setWeeklyPracticeCount(response.data.weeklyPracticeCount);
       } catch (error) {
@@ -114,7 +109,6 @@ useEffect(() => {
       });
       
 
-      console.log("✅ Google Identity 초기화 완료");
     } catch (err) {
       console.error("Google Identity 초기화 실패:", err);
     }
@@ -130,7 +124,6 @@ useEffect(() => {
   script.defer = true;
   script.id = "google-oauth";
   script.onload = () => {
-    console.log("✅ Google SDK 로드 완료");
     initGoogleSDK();
   };
   document.body.appendChild(script);
@@ -143,7 +136,7 @@ useEffect(() => {
 }, []);
 
 
-  // ✅ OAuth 리다이렉트 후 authorization code 처리
+  // OAuth 리다이렉트 후 authorization code 처리
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
@@ -233,7 +226,6 @@ useEffect(() => {
             return;
           }
       
-          console.log("✅ 구글 토큰 획득 성공:", tokenResponse);
           console.log("Refresh Token:", tokenResponse.refresh_token);
           
           try {
@@ -245,7 +237,7 @@ useEffect(() => {
             );
             
             if (response.status === 200 || response.status === 201) {
-              alert("✅ 구글 계정 연동이 완료되었습니다!");
+              alert("구글 계정 연동이 완료되었습니다!");
               // 구글 상태 다시 조회
               const statusResponse = await getGoogleStatus();
               const googleIdValue = statusResponse.data?.googleId;
@@ -336,7 +328,6 @@ useEffect(() => {
     );
   
     const result = await response.json();
-    console.log("캘린더 이벤트 추가 결과:", result);
   }
   
   
@@ -394,12 +385,12 @@ useEffect(() => {
           />
           </div>
 
-          <div className="flex flex-col gap-2">
+          {/* <div className="flex flex-col gap-2">
             <p className="text-xl font-bold">알림 일정</p>
             <p className="text-md text-gray-600 font-light">알림을 추가해서 루틴 연습 시간을 받을 수 있습니다</p>
             <button className="bg-blue-400 text-white rounded-md py-2 w-64 shadow-md text-md font-bold mx-auto"
        onClick={() => navigate('/notification/form')}>알림 추가하기 🔔</button>
-          </div>
+          </div> */}
           
           {/* {googleStatus === false && ( */}
           <div>

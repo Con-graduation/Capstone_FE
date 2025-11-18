@@ -3,25 +3,62 @@ import { useNavigate } from 'react-router-dom';
 import loadingGif from '../../assets/loading.gif';
 import ShortFeedback from '../../components/shortFeedback';
 import DropDown from '../../components/dropDown';
+import { postMusicRecommend } from '../../api/mcp';
 
 
 export default function MusicRecommend() {
     const navigate = useNavigate();
     const nickname = localStorage.getItem("nickname");
     const [selectedGenre, setSelectedGenre] = useState('');
-    // const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
-    const genres = ['팝', '록', '재즈','어쿠스틱','발라드', 'R&B', '컨트리', '메탈'];
+    // 드롭다운에 표시할 한글 장르 목록
+    const genres = ['팝', '록', '재즈', '어쿠스틱', '발라드', 'R&B', '컨트리', '메탈', 'J-POP'];
+    
+    // 한글 장르를 영문으로 변환하는 매핑 객체
+    const genreMapping = {
+        '팝': 'pop',
+        '록': 'rock',
+        '재즈': 'jazz',
+        '어쿠스틱': 'acoustic',
+        '발라드': 'ballad',
+        'R&B': 'rnb',
+        '컨트리': 'country',
+        '메탈': 'metal',
+        'J-POP': 'jpop'
+    };
 
+    const handleMusicRecommend = async () => {
+        if (!selectedGenre) {
+            alert('장르를 선택해주세요.');
+            return;
+        }
+        const englishGenre = genreMapping[selectedGenre];
+        if (englishGenre) {
+            try {
+                setLoading(true);
+                const response = await postMusicRecommend(englishGenre);
+                // console.log(response);
+                // API 호출 성공 후 결과 페이지로 이동
+                navigate('/recommend/result', { state: { genre: selectedGenre, response: response.data } });
+            } catch (error) {
+                console.error('곡 추천 실패:', error);
+                alert('곡 추천 중 오류가 발생했습니다. 다시 시도해주세요.');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
   return (
     <>
-    {/* {loading && (
+    {loading && (
     <div className="h-[calc(100vh-8rem)] w-screen bg-[#EEF5FF] flex flex-col items-center justify-center">
       <h1 className="text-3xl font-bold text-center">맞춤 곡 추천</h1>
       <img src={loadingGif} alt="loading" className="w-48 h-48" />
       <p className="text-xl font-semibold ">연습 기록을 기반으로</p>
       <p className="text-xl font-semibold ">난이도를 분석하는 중...</p>
-    </div>)} */}
+    </div>)}
+    {!loading && (
         <div className="h-[calc(100vh-8rem)] w-screen bg-[#EEF5FF] flex flex-col items-center pt-10 px-6">
         <h1 className="text-2xl font-bold">맞춤 곡 추천</h1>
              {/* 설명 카드 */}
@@ -51,11 +88,7 @@ export default function MusicRecommend() {
                 <button 
                     className="w-full py-3 bg-blue-500 text-white rounded-md font-bold mt-4 hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                     onClick={() => {
-                        if (!selectedGenre) {
-                            alert('장르를 선택해주세요.');
-                            return;
-                        }
-                        navigate('/recommend/result', { state: { genre: selectedGenre } });
+                        handleMusicRecommend();
                         window.scrollTo(0, 0);
                     }}
                     disabled={!selectedGenre}
@@ -64,6 +97,7 @@ export default function MusicRecommend() {
                 </button>
             </div>
         </div>
+    )}
     </>
   );
 }

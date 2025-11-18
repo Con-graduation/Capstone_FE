@@ -38,7 +38,7 @@ export default function MenuBar() {
               ? 'opacity-100 translate-y-0 scale-100' 
               : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
           }`}>
-            <button 
+            {/* <button 
               className="w-full px-2 py-2 text-center text-sm transition-colors duration-200"
               onClick={() => handleSubMenuClick(path[1])}
             >
@@ -49,7 +49,7 @@ export default function MenuBar() {
               onClick={() => handleSubMenuClick(path[2])}
             >
               튜너 세팅
-            </button>
+            </button> */}
             <button 
               className="w-full px-2 py-2 text-center text-sm transition-colors duration-200"
               onClick={() => handleSubMenuClick(path[3])}

@@ -132,6 +132,7 @@ export default function RoutineForm() {
               type="repeatCount" 
               value={repeatCount} 
               onValueChange={setRepeatCount}
+              routineType={routineType}
             />
             <Accordian 
               title="BPM" 
@@ -157,6 +158,7 @@ export default function RoutineForm() {
               type="repeatCount" 
               value={repeatCount} 
               onValueChange={setRepeatCount}
+              routineType={routineType}
             />
             <Accordian 
               title="BPM" 
