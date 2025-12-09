@@ -166,7 +166,7 @@ export default function MyPage() {
                     </div>
                 ) : (
                     <div>
-                        <div className="flex items-start gap-8 w-full">
+                        <div className="flex  gap-8 w-full">
                             <div className="relative flex flex-col items-centter justify-center">
                                 {originalImage ? (
                                     <img 
@@ -181,10 +181,10 @@ export default function MyPage() {
                                         </svg>
                                     </div>
                                 )}
-                            <button onClick={() => setIsEditMode(true)} className="mx-auto text-sm mt-2 bg-blue-400 text-white rounded-md hover:bg-blue-600 transition-colors">프로필 수정</button>
+                            <button onClick={() => setIsEditMode(true)} className="mx-auto w-28 text-sm mt-2 bg-blue-400 text-white rounded-md hover:bg-blue-600 transition-colors">프로필 수정</button>
 
                             </div>
-                            <div className="flex flex-col gap-2 w-full max-w-48">
+                            <div className="flex flex-col gap-2 w-full ">
                                 <div className="flex items-center gap-2 text-2xl font-bold">
                                     <p>Lv.{level}</p><p>{nickname}</p>
                                 </div>

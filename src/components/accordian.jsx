@@ -747,7 +747,7 @@ export default function Accordion({ title, type, value, onValueChange, routineTy
                 )}
                 {propRoutineType === '코드 전환' && (
                 <div className="flex flex-wrap gap-4 justify-center mb-4">
-                  {[5, 10, 20].map((count) => (
+                  {[1, 3, 5, 10, 20].map((count) => (
                     <button
                       key={count}
                       onClick={() => selectRepeatCount(count.toString())}
