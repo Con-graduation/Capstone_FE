@@ -699,7 +699,7 @@ useEffect(() => {
           }`}
         >
           {/* 항상 6개 행 */}
-          {[...Array(7)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <div
               key={i}
               className="absolute left-0 w-full border-t border-black"
