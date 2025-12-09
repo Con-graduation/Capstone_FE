@@ -51,6 +51,9 @@ h1 {
   line-height: 1.1;
 }
 
+textarea {
+  background-color: #ffffff;
+}
 input {
   background-color: #ffffff;
 }
