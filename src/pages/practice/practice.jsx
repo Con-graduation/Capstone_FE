@@ -419,7 +419,7 @@ useEffect(() => {
 
     // 크로매틱 연습용 타이머 (1bpm당 1개씩 점 이동)
     useEffect(() => {
-      if (!routineData || !userMediaStream || isPaused || routineData.routineType !== 'CHROMATIC' || !routineData.sequence) {
+      if (!routineData || !userMediaStream || isPaused || isLoading || showCompleteModal|| routineData.routineType !== 'CHROMATIC' || !routineData.sequence) {
         return;
       }
       
@@ -454,14 +454,14 @@ useEffect(() => {
       
       // 효과음 재생 타이머 (각 beat의 50% 지점에서 재생)
       const soundTimer = setInterval(() => {
-        if (!isPaused) {
+        if (!isPaused && !isLoading && !showCompleteModal) {
           playBeatSound();
         }
       }, intervalMs);
       
       // 첫 효과음은 반 beat 후 재생 (첫 애니메이션의 50% 지점)
       const firstSoundTimeout = setTimeout(() => {
-        if (!isPaused) {
+        if (!isPaused && !isLoading && !showCompleteModal) {
           playBeatSound();
         }
       }, halfBeatMs);
@@ -471,11 +471,11 @@ useEffect(() => {
         clearInterval(soundTimer);
         clearTimeout(firstSoundTimeout);
       };
-    }, [routineData, userMediaStream, isPaused, playBeatSound]);
+    }, [routineData, userMediaStream, isPaused, isLoading, showCompleteModal, playBeatSound]);
     
     // BPM 기반 인터벌로 시퀀스 인덱스 증가하는 타이머 (코드 전환용)
     useEffect(() => {
-      if (!routineData || !userMediaStream || isPaused || routineData.routineType === 'CHROMATIC' || !routineData.sequence) {
+      if (!routineData || !userMediaStream || isPaused || isLoading || showCompleteModal || routineData.routineType === 'CHROMATIC' || !routineData.sequence) {
         return;
       }
       
@@ -501,14 +501,14 @@ useEffect(() => {
       // 효과음 재생 타이머 (각 beat의 50% 지점에서 재생)
       // 코드 전환은 4 beats마다 발생하므로, 각 beat마다 효과음 재생
       const soundTimer = setInterval(() => {
-        if (!isPaused) {
+        if (!isPaused && !isLoading && !showCompleteModal) {
           playBeatSound();
         }
       }, beatMs);
       
       // 첫 효과음은 반 beat 후 재생 (첫 애니메이션의 50% 지점)
       const firstSoundTimeout = setTimeout(() => {
-        if (!isPaused) {
+        if (!isPaused && !isLoading && !showCompleteModal) {
           playBeatSound();
         }
       }, halfBeatMs);
@@ -518,7 +518,7 @@ useEffect(() => {
         clearInterval(soundTimer);
         clearTimeout(firstSoundTimeout);
       };
-    }, [routineData, userMediaStream, isPaused, playBeatSound]);
+    }, [routineData, userMediaStream, isPaused, isLoading, showCompleteModal, playBeatSound]);
     
     // 현재 코드 계산
     const currentCode = routineData?.sequence 
@@ -551,7 +551,13 @@ useEffect(() => {
           const totalSteps = stepsPerRepeat * (routineData?.repeats || 0);
           return chromaticIndex >= totalSteps - 1;
         })()
-      : currentRepeat >= (routineData?.repeats || 0);
+      : (() => {
+          // 코드 전환: currentSequenceIndex가 totalBeats - 1에 도달했을 때 완료 (마지막 코드까지 완료)
+          // totalBeats = repeats * sequence.length
+          // 예: 1회, 4개 코드(CGAD) -> totalBeats = 4, currentSequenceIndex가 3(D)에 도달하면 완료
+          const totalBeats = (routineData?.repeats || 0) * (routineData?.sequence?.length || 1);
+          return currentSequenceIndex >= totalBeats - 1;
+        })();
     
     // 완료 체크
     useEffect(() => {
