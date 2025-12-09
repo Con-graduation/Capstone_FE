@@ -604,9 +604,9 @@ useEffect(() => {
   
   return (
       <div className="fixed inset-0 bg-[#EEF5FF] overflow-hidden w-screen h-screen">
-       <div className="absolute top-1/2 left-1/2 h-screen w-screen -rotate-90 transform -translate-x-1/2 -translate-y-1/2 origin-center flex justify-center gap-8"
+       <div className="absolute top-1/2 left-1/2 h-screen w-screen -rotate-90 transform -translate-x-1/2 -translate-y-1/2 origin-center flex justify-center"
        style={{ width: '100vh', height: '100vw' }}>
-        <div className="flex flex-col items-center justify-center ml-4" style={{ width: '60%', flexShrink: 0 }}>
+        <div className="flex flex-col items-center justify-center ml-12" style={{ width: '60%', flexShrink: 0 }}>
             <div className="flex mt-4 text-center pl-4 w-full">
               {routineData?.routineType === 'CHROMATIC' ? (
                 // 크로매틱: 사이클에 따라 동적으로 변경 (1~12, 공간은 6개로 고정)
