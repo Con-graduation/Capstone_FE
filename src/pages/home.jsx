@@ -182,27 +182,8 @@ useEffect(() => {
 
 
   const handleGoogleLogin = () => {
-    try {
-      if (!window.google || !window.google.accounts?.id) {
-        alert("구글 로그인 서비스를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
-        return;
-      }
-  
-      // ✅ One Tap or FedCM prompt
-      window.google.accounts.id.prompt((notification) => {
-        if (
-          notification.isDismissedMoment() || // FedCM dismiss 대응
-          notification.isNotDisplayed() ||
-          notification.isSkippedMoment()
-        ) {
-          console.warn("One Tap 표시 불가 → 수동 로그인으로 전환");
-          handleManualGoogleLogin();
-        }
-      });
-    } catch (error) {
-      console.error("One Tap 표시 실패:", error);
-      handleManualGoogleLogin();
-    }
+    // 수동 로그인만 사용
+    handleManualGoogleLogin();
   };
   
   const handleManualGoogleLogin = () => {
