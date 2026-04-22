@@ -1,12 +1,98 @@
-# React + Vite
+# 🎸 Daily Guitar
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> AI 기반 기타 연주 분석 및 MCP 기반 기타 연습 어시스턴트 서비스
 
-Currently, two official plugins are available:
+<br/>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📌 프로젝트 개요
 
-## Expanding the ESLint configuration
+밴드 동아리 활동 중 개인 기타 연습 과정에서 연주 정확도에 대한 객관적인 피드백을 받을 수단이 부족해 연습 효율이 낮아지는 문제를 경험했습니다.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+이를 해결하기 위해 AI 기반 기타 연습 분석 서비스 **Daily Guitar**를 기획했습니다.
+
+사용자가 원하는 장르와 연습 데이터를 맥락으로 GPT에 질의해 수준에 맞는 곡을 추천받고, MCP 서버를 통해 연습 일정을 Google Calendar에 자동으로 등록할 수 있습니다.
+
+> 서울과학기술대학교 산업정보시스템전공 2025 캡스톤 경진대회 **금상(2위)** 수상 🏆
+
+<br/>
+
+## ✨ 주요 기능
+
+### 🎵 기타 지판 UI 기반 실시간 연습 인터페이스
+- 코드·크로매틱 등 루틴 유형에 따라 기타 지판 UI에 운지법을 동적으로 렌더링
+- 설정된 BPM에 맞춰 메트로놈 사운드와 Pulse 애니메이션을 동기화해 시각·청각 피드백 동시 제공
+- 손가락별 색상 매핑으로 직관적인 운지법 시각화
+- 크로매틱 연습은 12프렛까지 순회, 코드 전환 연습은 코드 구성·순서 커스터마이징 가능
+
+### 🎙️ 마이크 입력 감도 설정 및 실시간 음향 분석
+- `AudioContext → MediaStreamSource → GainNode → AnalyserNode` 노드 체인 구성
+- 사용자가 슬라이더로 입력 감도를 직접 조절할 수 있는 설정 페이지 구현
+- RMS 알고리즘으로 실시간 볼륨 계산
+- `requestAnimationFrame` 기반 분석 루프로 60fps 수준의 실시간 음향 피드백 제공
+
+### 🤖 AI 기반 곡 추천
+- 사용자의 연습 기록과 장르를 맥락으로 GPT-4o-mini에 질의해 수준에 맞는 곡 3개 추천
+- YouTube Data API를 직접 호출해 신뢰도 높은 영상 링크 제공
+- GPT가 생성하는 콘텐츠를 아티스트명·곡명으로 한정해 유효하지 않은 링크 문제 해결
+
+### 📅 MCP 기반 Google Calendar 연동
+- 자연어로 입력된 연습 일정 요청을 MCP 서버를 통해 구조화된 데이터로 변환
+- Google Calendar API와 연결해 채팅 내에서 일정 관리 완결
+- Google Identity 기반 로그인과 OAuth2 Token Client 기반 캘린더 권한 획득을 분리해 구현
+
+<br/>
+
+## 🛠️ 기술 스택
+
+| 분류 | 기술 |
+|------|------|
+| Framework | React |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| 상태 관리 | Zustand |
+| 인프라 | AWS S3, CloudFront |
+| AI | GPT-4o-mini, MCP |
+| 외부 API | Google Calendar API, YouTube Data API |
+
+<br/>
+
+## 🏗️ 기술 선택 이유
+
+### React
+기타 지판 UI, 메트로놈 애니메이션, 실시간 음향 분석 등 사용자 인터랙션과 상태 변화가 빈번한 서비스로, 모바일 전용 웹 인터페이스를 구현했습니다. SSR보다 클라이언트 중심의 빠른 인터랙션이 중요했고 React SPA가 적합하다고 판단했습니다.
+
+### Zustand
+사용자 정보, 연습 이력, 루틴 설정 등 여러 컴포넌트에서 공통으로 참조하는 상태가 많았습니다. Context API 대비 변경된 상태를 구독하는 컴포넌트만 리렌더링되어 연습 중 BPM, 메트로놈 상태 등 자주 변경되는 값을 효율적으로 관리했습니다.
+
+### AWS S3 + CloudFront
+사용자가 업로드하는 기타 연주 오디오 파일은 용량이 크고 AI 분석 후 결과 파일도 저장해야 했습니다. S3로 대용량 오디오 파일을 안정적으로 저장하고 CloudFront로 캐싱해 파일 응답 속도를 높였습니다.
+
+### MCP (Model Context Protocol)
+자연어로 입력된 연습 일정 요청을 구조화된 데이터로 변환해 Google Calendar API와 연결하는 파이프라인이 필요했습니다. MCP 서버를 통해 AI 분석 결과와 캘린더 생성을 하나의 채팅 흐름 안에서 처리할 수 있었습니다.
+
+<br/>
+
+## 🚨 트러블슈팅
+
+### GPT 유튜브 링크 신뢰성 문제
+**문제**: GPT가 반환하는 유튜브 링크가 삭제된 영상, 비공식 영상, 지역 제한 영상 등 재생이 불가능한 링크를 반환하는 경우가 발생했습니다.
+
+**원인**: GPT는 학습 데이터 기반으로 링크를 생성하기 때문에 해당 링크가 현재 유효한지 검증할 수 없었습니다.
+
+**해결**: GPT가 생성하는 콘텐츠를 아티스트명과 곡명으로만 한정하고, YouTube Data API를 직접 호출해 실제로 재생 가능한 영상 링크를 가져오도록 구조를 변경했습니다.
+
+<br/>
+
+## 👩‍💻 개발 환경 설정
+현재는 서버가 닫혀있는 상태입니다.
+
+```bash
+# 패키지 설치
+npm install
+
+# 개발 서버 실행
+npm run dev
+
+# 빌드
+npm run build
+```
